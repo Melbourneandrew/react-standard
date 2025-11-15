@@ -1,6 +1,8 @@
 # React Standards - Canonical Example
 
-A complete, production-ready implementation of the React architecture patterns used in modern applications. This project demonstrates the proper layered approach to building scalable React applications with Next.js and React Query.
+A production-ready implementation of React architecture patterns demonstrating a modular, scalable approach to building modern applications with Next.js 15, React 19, and TanStack Query.
+
+This project showcases a collection and items management system with proper separation of concerns, reusable patterns, and comprehensive CRUD operations.
 
 ## 🚀 Quick Start
 
@@ -14,224 +16,167 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-## 📖 Documentation
-
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Setup guide and feature walkthrough
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Complete technical implementation details
-- **[scratch/](./scratch/)** - Original canonical examples and architecture documentation
-  - [README.md](./scratch/README.md) - Architecture overview
-  - [ARCHITECTURE.md](./scratch/ARCHITECTURE.md) - Detailed architecture diagrams
-  - [QUICK_REFERENCE.md](./scratch/QUICK_REFERENCE.md) - Code templates and patterns
-  - [IMPERATIVE_VS_DECLARATIVE.md](./scratch/IMPERATIVE_VS_DECLARATIVE.md) - Data fetching patterns
-
 ## 🏗️ Architecture
 
-This project implements a 5-layer architecture:
+This project implements a modular, layered architecture organized by feature:
 
 ```
-┌─────────────────────────────────────┐
-│     Components (UI Layer)           │  ← ItemsList.tsx, ItemDetail.tsx
-├─────────────────────────────────────┤
-│     Context (State Aggregation)     │  ← ItemContext.tsx
-├─────────────────────────────────────┤
-│     Manager Hooks (Business Logic)  │  ← useItemManager, useItemSearch, useItemSelection
-├─────────────────────────────────────┤
-│     API Hooks (Data Access)         │  ← useItemsApi
-├─────────────────────────────────────┤
-│     Types (Data Models)             │  ← item.ts
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│     Components (Presentation Layer)         │  ← ItemsList, ItemEditDialog
+├─────────────────────────────────────────────┤
+│     Manager Hooks (Business Logic)          │  ← useItemSearch, useItemDetail
+├─────────────────────────────────────────────┤
+│     Query Hooks (React Query Integration)   │  ← useItemsQuery, useItemCreateMutation
+├─────────────────────────────────────────────┤
+│     API Hooks (Data Access Layer)           │  ← useItemsApi, useCollectionsApi
+├─────────────────────────────────────────────┤
+│     Types (Type Definitions)                │  ← item.ts, collection.ts
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  Contexts (Optional - State Aggregation)    │  ← ItemContext, CollectionContext
+└─────────────────────────────────────────────┘
+   Used when shared state is needed across
+   multiple components in the tree
 ```
 
 ### Data Flow
 
 ```
-User Action → Component → Context → Manager Hook → API Hook → API Route → Manager Hook (cache update) → Component (re-render)
+User Action → Component → Context → Manager Hook → Query Hook → API Hook → API Route
+                  ↑                                                              ↓
+                  └───────────── React Query Cache Update ←──────────────────────┘
 ```
 
 ## 📁 Project Structure
 
+> **Note:** The `app/api/` directory contains a fully functional mock API with in-memory data for both collections and items endpoints.
+
 ```
 src/
 ├── app/
-│   ├── api/items/              # Mock API routes
-│   │   ├── search/route.ts     # Search endpoint
-│   │   └── [id]/route.ts       # CRUD endpoints
-│   ├── layout.tsx              # Root layout with providers
-│   └── page.tsx                # Main demo page
+│   ├── collections/
+│   │   └── [id]/page.tsx              # Collection items view
+│   ├── layout.tsx                     # Root layout with providers
+│   └── page.tsx                       # Welcome page with collection selector
+│
 ├── components/
-│   ├── ItemDetail.tsx          # Imperative fetching example
-│   └── ItemsList.tsx           # Declarative fetching example
-├── contexts/
-│   └── ItemContext.tsx         # State aggregation
-├── hooks/
-│   ├── api/
-│   │   └── useItemsApi.ts     # API access layer
-│   ├── useItemManager.ts       # CRUD operations
-│   ├── useItemSearch.ts        # Search & pagination
-│   ├── useItemSelection.ts     # Selection state
-│   └── use-api.ts              # HTTP client
-├── providers/
-│   └── QueryProvider.tsx       # React Query setup
-└── types/
-    └── item.ts                 # TypeScript types
+│   ├── Navbar.tsx                     # Navigation header
+│   ├── WelcomeCard.tsx                # Home page welcome component
+│   └── ui/                            # shadcn/ui components
+│       ├── badge.tsx
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── dialog.tsx
+│       ├── input.tsx
+│       └── ...
+│
+├── lib/
+│   ├── hooks/
+│   │   ├── useApi.ts                  # HTTP client wrapper
+│   │   ├── useToast.ts                # Toast notifications
+│   │   └── useQueryErrorEffect.ts     # Error handling utility
+│   ├── types/
+│   │   └── api-types.ts               # Common API types
+│   └── utils.ts                       # Utility functions
+│
+├── modules/                           # Feature modules
+│   ├── collections/
+│   │   ├── components/
+│   │   │   └── CollectionsSelectionDropdown.tsx
+│   │   ├── contexts/
+│   │   │   └── CollectionContext.tsx  # Collection state & navigation
+│   │   ├── hooks/
+│   │   │   ├── api/
+│   │   │   │   └── useCollectionsApi.ts     # Collections API layer
+│   │   │   └── query/
+│   │   │       └── useCollectionsQuery.ts   # Collections React Query hook
+│   │   └── types/
+│   │       └── collection.ts          # Collection type definitions
+│   │
+│   └── items/
+│       ├── components/
+│       │   ├── ItemsList.tsx          # Items list with search/pagination
+│       │   ├── ItemCreationDialog.tsx # Create item modal
+│       │   ├── ItemEditDialog.tsx     # Edit item modal
+│       │   ├── ItemDeleteDialog.tsx   # Delete confirmation modal
+│       │   └── ItemViewDialog.tsx     # View item details modal
+│       ├── contexts/
+│       │   └── ItemContext.tsx        # Item state aggregation
+│       ├── hooks/
+│       │   ├── api/
+│       │   │   └── useItemsApi.ts     # Items API layer
+│       │   ├── query/
+│       │   │   ├── useItemsQuery.ts          # Fetch items query
+│       │   │   ├── useItemCreateMutation.ts  # Create mutation
+│       │   │   ├── useItemUpdateMutation.ts  # Update mutation
+│       │   │   └── useItemDeleteMutation.ts  # Delete mutation
+│       │   ├── useItemSearch.ts       # Search & pagination logic
+│       │   └── useItemDetail.ts       # Single item fetching
+│       └── types/
+│           └── item.ts                # Item type definitions
+│
+└── providers/
+    └── QueryProvider.tsx              # React Query client setup
 ```
-
-## ✨ Features
-
-### Implemented
-
-- ✅ **Search & Filter** - Full-text search and status filtering
-- ✅ **Pagination** - Page navigation with controls
-- ✅ **Item Selection** - Click to select with keyboard navigation
-- ✅ **CRUD Operations** - Update and delete with optimistic updates
-- ✅ **Loading States** - Proper loading indicators
-- ✅ **Error Handling** - Error boundaries and messages
-- ✅ **Mock API** - Fully functional API routes
-- ✅ **TypeScript** - Complete type safety
-- ✅ **React Query** - Advanced caching and state management
-- ✅ **Responsive Design** - Mobile-friendly layout
-
-### Patterns Demonstrated
-
-- ✅ Declarative data fetching (useQuery)
-- ✅ Imperative data fetching (fetchQuery)
-- ✅ Mutations with optimistic updates
-- ✅ Cache invalidation strategies
-- ✅ Hook composition
-- ✅ Context aggregation
-- ✅ Manager hooks pattern
-- ✅ Object destructuring everywhere
-- ✅ Proper TypeScript typing
 
 ## 🎯 Key Concepts
 
-### 1. API Hooks (Repository Layer)
+### 1. Modular Organization
 
-Pure API access functions that return typed promises:
+Features are organized into self-contained modules (e.g., `collections`, `items`) with all related code co-located:
 
-```typescript
-const { fetchItem, updateItem } = useItemsApi();
-const item = await fetchItem("123"); // Promise<Item>
+```
+modules/items/
+  ├── components/     # UI components
+  ├── contexts/       # State aggregation
+  ├── hooks/          # Business logic, queries, and API
+  └── types/          # Type definitions
 ```
 
-### 2. Manager Hooks (Service Layer)
+### 2. API Hooks (Data Access Layer)
 
-Business logic and state management with React Query:
-
-```typescript
-const { items, isLoading, updateItem } = useItemManager();
-// State managed by React Query
-```
-
-### 3. Context (State Sharing)
-
-Aggregates multiple manager hooks for component access:
+Pure API access functions that return typed promises. No React Query, just HTTP calls:
 
 ```typescript
-const { items, selectedItem, updateItem } = useItemContext();
-// Everything in one place
+const { fetchItems, createItem, updateItem } = useItemsApi();
+const items = await fetchItems({ collectionId }); // Promise<Item[]>
 ```
 
-### 4. Components (Presentation)
+### 3. Query Hooks (React Query Layer)
 
-UI rendering with context consumption:
+React Query integration that wraps API hooks with caching and state management:
+
+```typescript
+const { data, isLoading, refetch } = useItemsQuery(collectionId);
+const { mutate: createItem } = useItemCreateMutation();
+```
+
+### 4. Manager Hooks (Business Logic Layer)
+
+Compose query hooks with additional business logic like URL state management:
+
+```typescript
+const { items, setQuery, nextPage, previousPage } = useItemSearch();
+// Manages search params in URL, pagination, and fetching
+```
+
+### 5. Context (State Aggregation)
+
+Aggregates manager hooks to provide shared state across components:
+
+```typescript
+const { items, setQuery, currentPage, goToPage } = useItemContext();
+// All item-related state in one place
+```
+
+### 6. Components (Presentation Layer)
+
+UI components consume context and focus purely on rendering:
 
 ```typescript
 function ItemsList() {
-  const { items, isLoading } = useItemContext();
-  // Just render
+  const { items, isItemSearchLoading } = useItemContext();
+  // Just render the UI
 }
 ```
-
-## 🔧 Technologies
-
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
-- **[React 19](https://react.dev/)** - UI library
-- **[React Query](https://tanstack.com/query)** - Data fetching and caching
-- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[Tailwind CSS](https://tailwindcss.com/)** - Styling
-
-## 📚 Learning Path
-
-1. **Start Here**: Open [GETTING_STARTED.md](./GETTING_STARTED.md)
-2. **Explore**: Try the features at http://localhost:3000
-3. **Read Code**: Start with `src/types/item.ts` and work your way up
-4. **Understand**: Review [scratch/ARCHITECTURE.md](./scratch/ARCHITECTURE.md)
-5. **Practice**: Modify something and see what breaks
-6. **Build**: Create your own feature following the patterns
-
-## 🧪 API Endpoints
-
-All endpoints are fully functional mock APIs:
-
-### Search Items
-
-```bash
-GET /api/items/search?project_id=project-123&query=test&status=active&page=1
-```
-
-### Get Single Item
-
-```bash
-GET /api/items/1
-```
-
-### Update Item
-
-```bash
-PATCH /api/items/1
-Content-Type: application/json
-{"name": "Updated Name"}
-```
-
-### Delete Item
-
-```bash
-DELETE /api/items/1
-```
-
-## 🎨 Code Quality
-
-- ✅ No TypeScript errors
-- ✅ No linter errors
-- ✅ Consistent naming conventions
-- ✅ Comprehensive comments
-- ✅ Type-safe throughout
-- ✅ Follows React best practices
-- ✅ Production-ready patterns
-
-## 💡 Use Cases
-
-This pattern is perfect for:
-
-- ✅ Complex CRUD applications
-- ✅ Data-heavy dashboards
-- ✅ Admin panels
-- ✅ Search & filter interfaces
-- ✅ Real-time data applications
-- ✅ Forms with server state
-- ✅ List/detail views
-- ✅ Multi-step workflows
-
-## 🤝 Contributing
-
-This is a reference implementation. Feel free to:
-
-- Clone and modify for your projects
-- Use as a template for new features
-- Share with your team as a standard
-- Extend with additional patterns
-
-## 📄 License
-
-This is an educational example project.
-
-## 🙏 Acknowledgments
-
-Based on the SF Platform React architecture patterns. Special thanks to the team for developing these comprehensive standards.
-
----
-
-**Built with ❤️ to demonstrate production-ready React patterns**
-
-For questions or feedback, refer to the documentation in the `scratch/` directory or the implementation summaries.
