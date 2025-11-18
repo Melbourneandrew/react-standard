@@ -18,7 +18,6 @@ import { Loader2 } from "lucide-react";
 interface ItemCreationDialogProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
 /**
@@ -26,11 +25,13 @@ interface ItemCreationDialogProps {
  *
  * Convention: Uses useMutation (via useItemCreateMutation) for imperative creation.
  * Form state is managed locally. Resets form when dialog closes.
+ *
+ * Optimistic Updates: New item appears in UI immediately with temporary ID.
+ * The mutation handles cache invalidation to replace it with real item from server.
  */
 export function ItemCreationDialog({
   open,
   onClose,
-  onSuccess,
 }: ItemCreationDialogProps) {
   const { createItemAsync, isCreatingItem } = useItemCreateMutation();
   const [name, setName] = useState("");
@@ -53,9 +54,10 @@ export function ItemCreationDialog({
         description: description.trim() || undefined,
       });
       onClose();
-      onSuccess?.();
+      // ✅ No manual refetch needed - mutation handles cache invalidation
     } catch (err) {
       console.error("Failed to create:", err);
+      // ❌ Error is shown via console - optimistic item was removed
     }
   };
 

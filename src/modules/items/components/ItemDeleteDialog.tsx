@@ -16,18 +16,19 @@ import { Loader2 } from "lucide-react";
 interface ItemDeleteDialogProps {
   item: Item | null;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
 /**
  * Dialog for confirming item deletion
  *
  * Convention: Uses useMutation (via useItemDeleteMutation) for imperative deletes.
+ *
+ * Optimistic Updates: Item is removed from UI immediately. The mutation handles
+ * cache invalidation automatically - no manual refetch callbacks needed.
  */
 export function ItemDeleteDialog({
   item,
   onClose,
-  onSuccess,
 }: ItemDeleteDialogProps) {
   const { deleteItemAsync, isDeletingItem } = useItemDeleteMutation();
 
@@ -39,9 +40,10 @@ export function ItemDeleteDialog({
         itemId: item.id,
       });
       onClose();
-      onSuccess?.();
+      // ✅ No manual refetch needed - mutation handles cache invalidation
     } catch (err) {
       console.error("Failed to delete:", err);
+      // ❌ Error is shown via console - optimistic update was rolled back
     }
   };
 

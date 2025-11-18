@@ -13,6 +13,7 @@ import { Search, Plus, Loader2, Eye, Pencil, Trash2 } from "lucide-react";
 
 export default function ItemsList() {
   // Context: Shared state (search, filters, pagination)
+  // Note: refetchItemSearch no longer needed - mutations handle cache invalidation
   const {
     items,
     totalCount,
@@ -27,7 +28,6 @@ export default function ItemsList() {
     setQuery,
     nextPage,
     previousPage,
-    refetchItemSearch,
   } = useItemContext();
 
   // Dialog state
@@ -175,26 +175,23 @@ export default function ItemsList() {
         </div>
       </div>
 
-      {/* Dialogs */}
+      {/* Dialogs - No onSuccess callbacks needed, mutations handle cache invalidation */}
       <ItemViewDialog itemId={viewItemId} onClose={() => setViewItemId(null)} />
 
       <ItemEditDialog
         key={editItem?.id}
         item={editItem}
         onClose={() => setEditItem(null)}
-        onSuccess={refetchItemSearch}
       />
 
       <ItemDeleteDialog
         item={deleteItem}
         onClose={() => setDeleteItem(null)}
-        onSuccess={refetchItemSearch}
       />
 
       <ItemCreationDialog
         open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
-        onSuccess={refetchItemSearch}
       />
     </>
   );
