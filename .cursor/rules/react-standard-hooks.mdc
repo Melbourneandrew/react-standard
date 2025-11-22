@@ -14,7 +14,7 @@
 - Keys from `<domain>-query-keys`
 - Keep server snake_case, expose domain-friendly loading/error labels + `refetch`
 
-## Mutation hooks
+## Mutation hooks (these are also query hooks)
 
 - Location `modules/*/hooks/query`
 - Names `use<Domain><Action>Mutation`
@@ -29,6 +29,8 @@
 - Names describe business intent (`useItemSearch`, `useItemDetail`)
 - Compose query hooks + router/search params + derived helpers
 - Own complex local/URL state; no API calls inside contexts/components
+
+Manager hooks are the orchestration layer between UI components and the raw data hooks. API hooks only wrap `useApi().callApi` so they stay focused on HTTP concerns, and query/mutation hooks focus on React Query behavior (caching, optimistic updates, error wiring). Manager hooks consume those lower layers, combine them with router/search params, user actions, or view-model state, and expose the exact shape the UI needs. This separation keeps components declarative, gives us a single place to evolve business rules, and avoids mixing API concerns into presentation logic.
 
 ## Shared state via context
 

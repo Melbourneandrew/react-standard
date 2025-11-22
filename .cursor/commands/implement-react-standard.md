@@ -12,8 +12,10 @@ Implement or reimplement features using the hook categories below.
   - Location `modules/*/hooks/query/<domain>`
   - Names `use<Domain>sQuery`/`use<Domain>Query`/`use<Domain><Action>Mutation`
   - Must import `<domain>-query-keys` for every query/mutation key
-  - Queries wrap `useQuery`, integrate `useCollectionContext` or other sources for params, and run `useQueryErrorEffect` with `useDefaultQueryErrorHandler`
+  - Query hooks wrap `useQuery`, and manage loading/error aliases
+  - Query error handling: always run `useQueryErrorEffect(error, errorHandler, useDefaultQueryErrorHandler(...))` so every query reuses the default toast handler while still supporting custom overrides
   - Mutations wrap `useOptimisticMutation`, provide `updateCache`, and invalidate via shared keys
+  - Mutation error handling: every mutation (optimistic or not) must call `useDefaultQueryErrorHandler` and pass the returned handler to `onError` so write failures surface consistent toasts
   - Return typed data plus `isLoading*`, `isFetching*`, error aliases, and `refetch`/`mutateAsync` with domain names
   - If specifically requested Mutations should use optimistic updates via `useOptimisticMutation`, with `updateCache` + `searchBase` keys for instant UI feedback and automatic rollback.
 
@@ -301,6 +303,9 @@ type UseItemCreateMutationReturn = {
 export function useItemCreateMutation(): UseItemCreateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { createItemApi } = useItemsApi();
+  const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
+    "Item Mutation Error"
+  );
 
   const {
     mutateAsync: createItemAsync,
@@ -334,6 +339,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
         total_count: oldData.total_count + 1,
       };
     },
+    onError: (error) => defaultQueryErrorHandler(error),
   });
 
   return {

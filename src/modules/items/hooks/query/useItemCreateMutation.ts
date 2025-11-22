@@ -1,6 +1,7 @@
 import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
 import { useOptimisticMutation } from "@/lib/hooks/useOptimisticMutation";
+import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
 import { itemQueryKeys } from "./item-query-keys";
 import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 
@@ -45,6 +46,9 @@ type UseItemCreateMutationReturn = {
 export function useItemCreateMutation(): UseItemCreateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { createItemApi } = useItemsApi();
+  const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
+    "Item Mutation Error"
+  );
 
   const {
     mutateAsync: createItemAsync,
@@ -79,6 +83,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
         total_count: oldData.total_count + 1,
       };
     },
+    onError: (error) => defaultQueryErrorHandler(error),
   });
 
   return {

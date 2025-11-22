@@ -1,6 +1,7 @@
 import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
 import { useOptimisticMutation } from "@/lib/hooks/useOptimisticMutation";
+import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
 import { itemQueryKeys } from "./item-query-keys";
 import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 
@@ -42,6 +43,9 @@ type UseItemDeleteMutationReturn = {
 export function useItemDeleteMutation(): UseItemDeleteMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { deleteItemApi } = useItemsApi();
+  const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
+    "Item Mutation Error"
+  );
 
   const {
     mutateAsync: deleteItemAsync,
@@ -62,6 +66,7 @@ export function useItemDeleteMutation(): UseItemDeleteMutationReturn {
       items: oldData.items.filter((item) => item.id !== itemId),
       total_count: Math.max(0, oldData.total_count - 1),
     }),
+    onError: (error) => defaultQueryErrorHandler(error),
   });
 
   return {

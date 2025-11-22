@@ -1,6 +1,7 @@
 "use client";
 
 import { useItemDeleteMutation } from "@/modules/items/hooks/query/useItemDeleteMutation";
+import { ErrorTriggerButton } from "@/components/ErrorTriggerButton";
 import type { Item } from "@/modules/items/types/item";
 import {
   Dialog,
@@ -47,6 +48,16 @@ export function ItemDeleteDialog({
     }
   };
 
+  const handleDeleteError = async () => {
+    try {
+      await deleteItemAsync({
+        itemId: "error-trigger-item-id",
+      });
+    } catch {
+      // Expected - handled via default mutation error handler toast
+    }
+  };
+
   return (
     <Dialog open={!!item} onOpenChange={onClose}>
       <DialogContent>
@@ -62,7 +73,11 @@ export function ItemDeleteDialog({
                 This action cannot be undone.
               </p>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+              <ErrorTriggerButton
+                onTrigger={handleDeleteError}
+                disabled={isDeletingItem}
+              />
               <Button
                 variant="outline"
                 onClick={onClose}
