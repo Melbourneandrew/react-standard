@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCollectionsApi } from "../api/useCollectionsApi";
 import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
 import { useQueryErrorEffect } from "@/lib/hooks/useQueryErrorEffect";
+import { collectionQueryKeys } from "./collection-query-keys";
 import type {
   CollectionSearchParams,
   CollectionSearchResponse,
@@ -56,7 +57,7 @@ export function useCollectionsQuery(
   // Declarative query: Runs automatically when params change
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<CollectionSearchResponse>({
-      queryKey: ["collections", "search", searchParams],
+      queryKey: collectionQueryKeys.search(searchParams),
       queryFn: () => searchCollectionsApi({ queryParams: searchParams }),
       enabled: options?.enabled !== false, // Default to true, but allow disabling
     });

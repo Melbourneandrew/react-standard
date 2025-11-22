@@ -3,6 +3,7 @@ import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
 import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
 import { useQueryErrorEffect } from "@/lib/hooks/useQueryErrorEffect";
+import { itemQueryKeys } from "./item-query-keys";
 import type {
   ItemSearchParams,
   ItemSearchResponse,
@@ -56,7 +57,7 @@ export function useItemsQuery(
   // Declarative query: Runs automatically when params change
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<ItemSearchResponse>({
-      queryKey: ["items", "search", currentCollectionId, searchParams],
+      queryKey: itemQueryKeys.search(currentCollectionId, searchParams),
       queryFn: () => {
         if (!currentCollectionId) {
           throw new Error("Collection ID is required");

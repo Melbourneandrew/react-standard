@@ -35,7 +35,7 @@ interface UseOptimisticMutationOptions<
   /**
    * Query key to invalidate and optimistically update
    */
-  queryKey: unknown[];
+  queryKey: readonly unknown[];
 
   /**
    * Function to optimistically update the cache
