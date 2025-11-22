@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useItemUpdateMutation } from "@/modules/items/hooks/query/useItemUpdateMutation";
+import { ErrorTriggerButton } from "@/components/ErrorTriggerButton";
 import type { Item } from "@/modules/items/types/item";
 import {
   Dialog,
@@ -55,6 +56,18 @@ export function ItemEditDialog({
     }
   };
 
+  const handleUpdateError = async () => {
+    if (!item) return;
+    try {
+      await updateItemAsync({
+        itemId: "error-trigger-item-id",
+        data: { name: "" },
+      });
+    } catch {
+      // Expected - handled via default mutation error handler toast
+    }
+  };
+
   return (
     <Dialog open={!!item} onOpenChange={onClose}>
       <DialogContent>
@@ -88,7 +101,11 @@ export function ItemEditDialog({
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+              <ErrorTriggerButton
+                onTrigger={handleUpdateError}
+                disabled={isUpdatingItem}
+              />
               <Button
                 variant="outline"
                 onClick={onClose}

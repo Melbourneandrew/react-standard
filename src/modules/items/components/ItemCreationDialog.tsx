@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useItemCreateMutation } from "@/modules/items/hooks/query/useItemCreateMutation";
+import { ErrorTriggerButton } from "@/components/ErrorTriggerButton";
 import {
   Dialog,
   DialogContent,
@@ -29,10 +30,7 @@ interface ItemCreationDialogProps {
  * Optimistic Updates: New item appears in UI immediately with temporary ID.
  * The mutation handles cache invalidation to replace it with real item from server.
  */
-export function ItemCreationDialog({
-  open,
-  onClose,
-}: ItemCreationDialogProps) {
+export function ItemCreationDialog({ open, onClose }: ItemCreationDialogProps) {
   const { createItemAsync, isCreatingItem } = useItemCreateMutation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +56,17 @@ export function ItemCreationDialog({
     } catch (err) {
       console.error("Failed to create:", err);
       // ❌ Error is shown via console - optimistic item was removed
+    }
+  };
+
+  const handleCreateError = async () => {
+    try {
+      await createItemAsync({
+        // Purposely invalid payload to trigger backend validation failure
+        name: "",
+      });
+    } catch {
+      // Expected - handled via default mutation error handler toast
     }
   };
 
@@ -95,7 +104,11 @@ export function ItemCreationDialog({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+          <ErrorTriggerButton
+            onTrigger={handleCreateError}
+            disabled={isCreatingItem}
+          />
           <Button variant="outline" onClick={onClose} disabled={isCreatingItem}>
             Cancel
           </Button>
