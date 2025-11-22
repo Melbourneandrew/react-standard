@@ -19,7 +19,6 @@ import { Loader2 } from "lucide-react";
 interface ItemEditDialogProps {
   item: Item | null;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
 /**
@@ -27,11 +26,13 @@ interface ItemEditDialogProps {
  *
  * Convention: Uses useMutation (via useItemUpdateMutation) for imperative updates.
  * Form state is managed locally. Parent should use key prop to reset state when item changes.
+ *
+ * Optimistic Updates: Changes appear in UI immediately. The mutation handles
+ * cache invalidation automatically - no manual refetch callbacks needed.
  */
 export function ItemEditDialog({
   item,
   onClose,
-  onSuccess,
 }: ItemEditDialogProps) {
   const { updateItemAsync, isUpdatingItem } = useItemUpdateMutation();
   // Initialize from props - parent's key prop will reset component when item changes
@@ -47,9 +48,10 @@ export function ItemEditDialog({
         data: { name, description },
       });
       onClose();
-      onSuccess?.();
+      // ✅ No manual refetch needed - mutation handles cache invalidation
     } catch (err) {
       console.error("Failed to update:", err);
+      // ❌ Error is shown via console - optimistic update was rolled back
     }
   };
 

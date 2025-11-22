@@ -1,17 +1,25 @@
-import { useMutation } from "@tanstack/react-query";
 import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
-import type { Item } from "@/modules/items/types/item";
+import { useOptimisticMutation } from "@/lib/hooks/useOptimisticMutation";
+import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 
 /**
  * Mutation Hook - Create items
  *
- * Layer: Query Layer (wraps useMutation)
+ * Layer: Query Layer (wraps useOptimisticMutation)
  * Naming: use[Domain][Action]Mutation for write operations
  * Convention: Imperative - only executes when called
  *
  * Used directly in components (not context) - no shared state
  * Collection ID is obtained from CollectionContext.
+ *
+ * Features:
+ * - Optimistic Updates: New item appears in UI immediately with temporary ID
+ * - Automatic Rollback: Removes optimistic item on error
+ * - Cache Invalidation: Refetches to get real item with server-generated ID
+ *
+ * Note: Creates use optimistic updates with temp IDs. The final refetch
+ * replaces the temp item with the real one from the server.
  */
 
 /**
@@ -41,8 +49,8 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
     mutateAsync: createItemAsync,
     isPending: isCreatingItem,
     error: itemCreateError,
-  } = useMutation({
-    mutationFn: ({ name, description }: CreateItemParams) => {
+  } = useOptimisticMutation<Item, CreateItemParams, ItemSearchResponse>({
+    mutationFn: ({ name, description }) => {
       if (!currentCollectionId) {
         throw new Error("Collection ID is required");
       }
@@ -50,6 +58,25 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
         routeParams: { collectionId: currentCollectionId },
         bodyParams: { name, description },
       });
+    },
+    queryKey: ["items", "search", currentCollectionId],
+    updateCache: (oldData, { name, description }) => {
+      // Create optimistic item with temporary ID
+      const now = new Date().toISOString();
+      const optimisticItem: Item = {
+        id: `temp-${Date.now()}`,
+        name,
+        description: description || "",
+        collection_id: currentCollectionId!,
+        created_at: now,
+        updated_at: now,
+      };
+
+      return {
+        ...oldData,
+        items: [optimisticItem, ...oldData.items],
+        total_count: oldData.total_count + 1,
+      };
     },
   });
 

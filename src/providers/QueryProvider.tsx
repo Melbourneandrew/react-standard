@@ -6,16 +6,17 @@ import { ReactNode, useState } from "react";
 /**
  * React Query Provider Wrapper
  *
- * CONFIGURED FOR: No Caching, Manual Control
+ * CONFIGURED FOR: Optimistic Updates with Controlled Caching
  *
- * React Query is used ONLY as a wrapper around fetch() to get:
+ * React Query provides:
  * - Consistent {data, isLoading, error} API
  * - Loading state management
- * - Error handling conventions
+ * - Optimistic updates with automatic rollback
+ * - Cache invalidation on mutations
  *
- * The cache is effectively DISABLED - you manage all state yourself.
- * This prevents cache from interfering with your custom optimistic updates,
- * state management, and business logic.
+ * Caching is ENABLED to support optimistic updates, but background
+ * refetching is DISABLED so you maintain control over when data is fetched.
+ * Mutations handle cache invalidation explicitly via onSettled/onSuccess.
  */
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -23,26 +24,29 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // 🚫 NO CACHING - Cache is cleared immediately after queries run
-            gcTime: 0, // (formerly cacheTime in older versions)
+            // ✅ CACHING ENABLED - Required for optimistic updates
+            gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
 
-            // 🚫 NO STALE TIME - Data is always considered stale (never cached)
-            staleTime: 0,
+            // ✅ SHORT STALE TIME - Data considered fresh for 30 seconds
+            staleTime: 30 * 1000, // 30 seconds
 
             // 🚫 NO AUTO-RETRY - You control retry logic yourself
             retry: false,
 
             // 🚫 NO BACKGROUND REFETCHING - Data only fetches when YOU call it
+            // Mutations explicitly invalidate queries when needed
             refetchOnWindowFocus: false,
             refetchOnMount: false,
             refetchOnReconnect: false,
 
-            // This makes React Query a "dumb" wrapper - it just handles
-            // loading/error states and provides a consistent API.
-            // YOU control all data, timing, and state management.
+            // This configuration gives you:
+            // - Optimistic updates that can be rolled back
+            // - Cache that persists during mutations
+            // - Manual control via invalidateQueries()
+            // - No surprise background refetches
           },
           mutations: {
-            // Mutations also won't retry automatically
+            // Mutations won't retry automatically
             retry: false,
           },
         },
