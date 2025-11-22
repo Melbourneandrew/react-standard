@@ -1,6 +1,7 @@
 import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
 import { useOptimisticMutation } from "@/lib/hooks/useOptimisticMutation";
+import { itemQueryKeys } from "./item-query-keys";
 import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 
 /**
@@ -59,7 +60,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
         bodyParams: { name, description },
       });
     },
-    queryKey: ["items", "search", currentCollectionId],
+    queryKey: itemQueryKeys.searchBase(currentCollectionId),
     updateCache: (oldData, { name, description }) => {
       // Create optimistic item with temporary ID
       const now = new Date().toISOString();

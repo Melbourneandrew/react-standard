@@ -1,0 +1,44 @@
+# Naming Conventions
+
+## PascalCase
+
+**Files:**
+
+- React Components: `ItemCreationDialog.tsx`, `Navbar.tsx`
+- Contexts: `ItemContext.tsx`, `CollectionContext.tsx`
+- Providers: `QueryProvider.tsx`
+
+**Code:**
+
+- Components, Contexts, Types, Interfaces, Classes
+
+## camelCase
+
+**Files:**
+
+- Hooks: `useItemsApi.ts`, `useOptimisticMutation.ts`, `useItemDetail.ts`
+
+**Code:**
+
+- Functions, variables, hooks, props
+
+## lowercase (kebab-case for multi-word)
+
+**Files:**
+
+- Type files: `item.ts`, `collection.ts`, `api-types.ts`, `item-query-keys.ts`
+- Utility files: `utils.ts`
+- UI library components: `button.tsx`, `card.tsx`, `dialog.tsx`
+- Route/config files: `route.ts`, `mock-data.ts`
+
+## UPPER_SNAKE_CASE
+
+**Code:**
+
+- Constants (if needed)
+
+## snake_case
+
+**Code:**
+
+- API response fields (matches backend Python conventions)

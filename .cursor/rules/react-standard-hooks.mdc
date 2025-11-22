@@ -1,0 +1,37 @@
+# React Standard Hooks
+
+## API hooks
+
+- Location `modules/*/hooks/api`
+- Names `use<Domain>Api`, methods `<verb><Domain>Api` eg. `useItemsApi`
+- Pure HTTP via `useApi().callApi`; no React Query, no shared state, return typed promises
+
+## Query hooks
+
+- Location `modules/*/hooks/query`
+- Names `use<Domain>sQuery` (lists) or `use<Domain>Query`
+- Wrap `useQuery`; pull params from contexts/manager hooks
+- Keys from `<domain>-query-keys`
+- Keep server snake_case, expose domain-friendly loading/error labels + `refetch`
+
+## Mutation hooks
+
+- Location `modules/*/hooks/query`
+- Names `use<Domain><Action>Mutation`
+- Wrap `useOptimisticMutation`; `queryKey` must come from `<domain>-query-keys.searchBase`
+- Return `mutateAsync` renamed (`createItemAsync` etc.), plus `is<Action>ing`, `<action>Error`
+- Perform optimistic cache writes + rely on `invalidateQueries` for final sync
+- Used directly by components (no context)
+
+## Manager hooks
+
+- Location `modules/*/hooks`
+- Names describe business intent (`useItemSearch`, `useItemDetail`)
+- Compose query hooks + router/search params + derived helpers
+- Own complex local/URL state; no API calls inside contexts/components
+
+## Shared state via context
+
+- If a manager hook’s state must be shared, wrap it in a context provider (`ItemProvider`, `CollectionProvider`)
+- Provider executes the manager hook once and exposes its return via `use<Domain>Context`
+- Only shared, long-lived state goes in context; per-component state and all mutations stay in local hooks
