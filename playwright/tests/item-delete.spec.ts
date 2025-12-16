@@ -1,4 +1,4 @@
-import { expect, test } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Item Delete", () => {
   test.beforeEach(async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe("Item Delete", () => {
 
   test("should open delete confirmation dialog", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-trash-2)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-trash-2)"));
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
@@ -18,7 +18,7 @@ test.describe("Item Delete", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
-    await firstItem.locator("button:has(svg.lucide-trash-2)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-trash-2)"));
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(
       page.getByRole("dialog").getByText(itemName!, { exact: false })
@@ -29,17 +29,17 @@ test.describe("Item Delete", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
-    await firstItem.locator("button:has(svg.lucide-trash-2)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-trash-2)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Confirm deletion
-    await page.getByRole("button", { name: /delete/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /delete/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
     // Search for deleted item to verify it's gone
-    await page.getByPlaceholder("Search...").fill(itemName!);
+    await cursor.fill(page, page.getByPlaceholder("Search..."), itemName!);
     await expect(page).toHaveURL(/query=/, { timeout: 5000 });
     await page.waitForTimeout(500);
   });
@@ -48,11 +48,11 @@ test.describe("Item Delete", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
-    await firstItem.locator("button:has(svg.lucide-trash-2)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-trash-2)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Cancel
-    await page.getByRole("button", { name: /cancel/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /cancel/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();

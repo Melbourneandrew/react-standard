@@ -1,4 +1,4 @@
-import { expect, test } from "../fixtures";
+import { test, expect, cursor } from "../fixtures";
 
 test.describe("Collection Selection", () => {
   test("should show welcome page with collection dropdown", async ({
@@ -22,7 +22,7 @@ test.describe("Collection Selection", () => {
     await page.goto("/");
 
     // Click the card's dropdown (second combobox, the one in the welcome card)
-    await page.getByRole("combobox").nth(1).click();
+    await cursor.click(page, page.getByRole("combobox").nth(1));
 
     // Wait for collections to load and listbox to appear
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
@@ -35,13 +35,13 @@ test.describe("Collection Selection", () => {
     await page.goto("/");
 
     // Click the card's dropdown
-    await page.getByRole("combobox").nth(1).click();
+    await cursor.click(page, page.getByRole("combobox").nth(1));
 
     // Wait for options to load
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select the first collection
-    await page.getByRole("option").first().click();
+    await cursor.click(page, page.getByRole("option").first());
 
     // Should navigate to collection page
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);
@@ -63,13 +63,13 @@ test.describe("Collection Selection", () => {
     });
 
     // Find and click the navbar dropdown (first combobox)
-    await page.getByRole("combobox").first().click();
+    await cursor.click(page, page.getByRole("combobox").first());
 
     // Wait for options to load
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select a different collection (second option)
-    await page.getByRole("option").nth(1).click();
+    await cursor.click(page, page.getByRole("option").nth(1));
 
     // Should navigate to different collection
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);

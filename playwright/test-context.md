@@ -15,23 +15,36 @@ Tests are driven entirely by Gherkin feature files. Each feature file defines us
 
 ### Imports
 
-Tests **must** import from the local fixtures file, not from `@playwright/test`:
+Tests **must** import from the local fixtures file:
 
 ```typescript
-import { test, expect } from "../fixtures";
+import { test, expect, cursor } from "../fixtures";
 ```
 
-This enables the cursor visualization system for debug mode. The fixtures intercept standard Playwright APIs (`click`, `fill`, `hover`, etc.) transparently - **no custom code needed in tests**.
+### Cursor API (Explicit Opt-In)
+
+Tests use explicit `cursor.*` functions for user interactions. When `SHOW_CURSOR=true`, these animate the cursor; when disabled, they just perform the action directly.
+
+```typescript
+// Click with cursor animation (when SHOW_CURSOR=true)
+await cursor.click(page, locator);
+
+// Fill with cursor animation + human-like typing
+await cursor.fill(page, locator, "text value");
+
+// Hover with cursor animation
+await cursor.hover(page, locator);
+```
+
+**Why explicit?** No magic monkey-patching. Clear intent. Easy to debug. The cursor behavior is an opt-in feature, not a hidden side effect.
 
 ### Debug Mode Features
 
-When running `pnpm test:debug`, the fixtures automatically:
+When running `pnpm test:debug` (SHOW_CURSOR=true):
 
-- Inject an animated SVG cursor overlay
-- Animate cursor movement to elements before clicking
-- Show click ripple effects
-
-Tests remain **100% standard Playwright code** - the cursor effects are purely visual and only apply to `click()` operations.
+- Animated SVG cursor with arc movement
+- Click ripple effects
+- Fast human-like typing (~125 chars/sec)
 
 ### Package Scripts
 

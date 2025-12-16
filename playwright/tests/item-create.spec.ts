@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Item Creation", () => {
   test.beforeEach(async ({ page }) => {
@@ -10,28 +10,28 @@ test.describe("Item Creation", () => {
 
   test("should open create dialog when clicking + button", async ({ page }) => {
     const createButton = page.locator("button:has(svg.lucide-plus)");
-    await createButton.click();
+    await cursor.click(page, createButton);
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
   test("should create item successfully", async ({ page }) => {
     // Open create dialog
-    await page.locator("button:has(svg.lucide-plus)").click();
+    await cursor.click(page, page.locator("button:has(svg.lucide-plus)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in the form
     const uniqueName = `Test Item ${Date.now()}`;
-    await page.getByLabel("Name").fill(uniqueName);
-    await page.getByLabel("Description").fill("Test description for new item");
+    await cursor.fill(page, page.getByLabel("Name"), uniqueName);
+    await cursor.fill(page, page.getByLabel("Description"), "Test description for new item");
 
     // Submit
-    await page.getByRole("button", { name: /create/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /create/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
 
     // New item should appear in the list
-    await page.getByPlaceholder("Search...").fill(uniqueName);
+    await cursor.fill(page, page.getByPlaceholder("Search..."), uniqueName);
     await expect(page).toHaveURL(/query=/, { timeout: 5000 });
     await page.waitForTimeout(1000);
     await expect(page.getByText(uniqueName)).toBeVisible({ timeout: 10000 });
@@ -41,15 +41,15 @@ test.describe("Item Creation", () => {
     page,
   }) => {
     // Open create dialog
-    await page.locator("button:has(svg.lucide-plus)").click();
+    await cursor.click(page, page.locator("button:has(svg.lucide-plus)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in only the name
     const uniqueName = `NameOnly ${Date.now()}`;
-    await page.getByLabel("Name").fill(uniqueName);
+    await cursor.fill(page, page.getByLabel("Name"), uniqueName);
 
     // Submit
-    await page.getByRole("button", { name: /create/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /create/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
@@ -57,14 +57,14 @@ test.describe("Item Creation", () => {
 
   test("should cancel item creation", async ({ page }) => {
     // Open create dialog
-    await page.locator("button:has(svg.lucide-plus)").click();
+    await cursor.click(page, page.locator("button:has(svg.lucide-plus)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in some data
-    await page.getByLabel("Name").fill("Should Not Exist");
+    await cursor.fill(page, page.getByLabel("Name"), "Should Not Exist");
 
     // Cancel
-    await page.getByRole("button", { name: /cancel/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /cancel/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();

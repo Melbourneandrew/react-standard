@@ -1,4 +1,4 @@
-import { expect, test } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Item View", () => {
   test.beforeEach(async ({ page }) => {
@@ -10,13 +10,13 @@ test.describe("Item View", () => {
 
   test("should open view dialog when clicking eye button", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-eye)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-eye)"));
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
   test("should display item details in view dialog", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-eye)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-eye)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Wait for item to load (title should not be "Loading..." or "Error")
@@ -32,7 +32,7 @@ test.describe("Item View", () => {
 
   test("should close view dialog", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-eye)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-eye)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Close with Escape key

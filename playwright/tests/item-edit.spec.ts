@@ -1,4 +1,4 @@
-import { expect, test } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Item Edit", () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe("Item Edit", () => {
     page,
   }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-pencil)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
@@ -20,7 +20,7 @@ test.describe("Item Edit", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
-    await firstItem.locator("button:has(svg.lucide-pencil)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Name field should be pre-filled
@@ -29,16 +29,15 @@ test.describe("Item Edit", () => {
 
   test("should update item successfully", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    await firstItem.locator("button:has(svg.lucide-pencil)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Change the name
     const uniqueName = `Updated ${Date.now()}`;
-    await page.getByLabel("Name").clear();
-    await page.getByLabel("Name").fill(uniqueName);
+    await cursor.fill(page, page.getByLabel("Name"), uniqueName);
 
     // Save
-    await page.getByRole("button", { name: /save/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /save/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
@@ -53,15 +52,14 @@ test.describe("Item Edit", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const originalName = await firstItem.locator("h3").textContent();
 
-    await firstItem.locator("button:has(svg.lucide-pencil)").click();
+    await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Change the name
-    await page.getByLabel("Name").clear();
-    await page.getByLabel("Name").fill("Should Not Be Saved");
+    await cursor.fill(page, page.getByLabel("Name"), "Should Not Be Saved");
 
     // Cancel
-    await page.getByRole("button", { name: /cancel/i }).click();
+    await cursor.click(page, page.getByRole("button", { name: /cancel/i }));
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();

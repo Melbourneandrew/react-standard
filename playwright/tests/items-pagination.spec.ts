@@ -1,4 +1,4 @@
-import { expect, test } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Items Pagination", () => {
   test.beforeEach(async ({ page }) => {
@@ -26,18 +26,18 @@ test.describe("Items Pagination", () => {
   });
 
   test("should navigate to next page", async ({ page }) => {
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await cursor.click(page, page.getByRole("button", { name: "Next", exact: true }));
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByText(/Page 2 of \d+/)).toBeVisible();
   });
 
   test("should navigate back to previous page", async ({ page }) => {
     // Go to page 2 first
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await cursor.click(page, page.getByRole("button", { name: "Next", exact: true }));
     await expect(page).toHaveURL(/page=2/);
 
     // Click previous
-    await page.getByRole("button", { name: "Previous" }).click();
+    await cursor.click(page, page.getByRole("button", { name: "Previous" }));
     await expect(page.getByText(/Page 1 of \d+/)).toBeVisible();
   });
 
@@ -49,7 +49,7 @@ test.describe("Items Pagination", () => {
 
     // Navigate to last page
     for (let i = 1; i < totalPages; i++) {
-      await page.getByRole("button", { name: "Next", exact: true }).click();
+      await cursor.click(page, page.getByRole("button", { name: "Next", exact: true }));
       await expect(page).toHaveURL(new RegExp(`page=${i + 1}`));
     }
 

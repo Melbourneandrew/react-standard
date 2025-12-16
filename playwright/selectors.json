@@ -3,8 +3,15 @@
   "description": "Playwright selector mappings and metadata for test generation from Gherkin feature files",
 
   "imports": {
-    "required": "import { test, expect } from \"../fixtures\";",
+    "required": "import { test, expect, cursor } from \"../fixtures\";",
     "note": "Always import from ../fixtures, NOT from @playwright/test"
+  },
+
+  "cursorApi": {
+    "click": "cursor.click(page, locator) - click with optional cursor animation",
+    "fill": "cursor.fill(page, locator, value) - fill with optional cursor + typing animation",
+    "hover": "cursor.hover(page, locator) - hover with optional cursor animation",
+    "behavior": "When SHOW_CURSOR=true: animates cursor. When false: just performs action directly."
   },
 
   "testStructure": {
@@ -250,13 +257,10 @@
 
   "fixturesFile": {
     "path": "playwright/fixtures.ts",
-    "exports": ["test", "expect"],
-    "purpose": "Provides base test with transparent cursor visualization for debug mode",
+    "exports": ["test", "expect", "cursor"],
+    "purpose": "Provides test fixture and explicit cursor API for debug visualization",
     "debugEnvVar": "SHOW_CURSOR=true enables animated cursor",
-    "features": {
-      "automaticCursor": "Intercepts click() to show cursor movement before clicking",
-      "clickAnimation": "Ripple effect on clicks"
-    },
-    "testCodeStyle": "100% standard Playwright APIs - no custom cursor methods needed"
+    "cursorMethods": ["cursor.click(page, locator)", "cursor.fill(page, locator, value)", "cursor.hover(page, locator)"],
+    "testCodeStyle": "Use cursor.* methods for interactions - explicit opt-in, no magic"
   }
 }
