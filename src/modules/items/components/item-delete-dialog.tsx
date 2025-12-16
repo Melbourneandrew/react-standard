@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useItemDeleteMutation } from "@/modules/items/hooks/query/use-item-delete-mutation";
 import { ErrorTriggerButton } from "@/components/error-trigger-button";
 import type { Item } from "@/modules/items/types/item";
@@ -27,7 +28,7 @@ interface ItemDeleteDialogProps {
  * Optimistic Updates: Item is removed from UI immediately. The mutation handles
  * cache invalidation automatically - no manual refetch callbacks needed.
  */
-export function ItemDeleteDialog({ item, onClose }: ItemDeleteDialogProps) {
+export function ItemDeleteDialog({ item, onClose }: ItemDeleteDialogProps): ReactNode {
   const { deleteItemAsync, isDeletingItem } = useItemDeleteMutation();
 
   const handleDelete = async () => {

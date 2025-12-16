@@ -1,4 +1,4 @@
-import type { ItemSearchParams } from "../../types/item";
+import type { ItemSearchParams } from "@/modules/items/types/item";
 
 /**
  * Query Key Factory for Items

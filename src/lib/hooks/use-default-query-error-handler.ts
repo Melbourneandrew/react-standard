@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useToast } from "./use-toast";
-import { ApiError } from "./use-api";
+import { useToast } from "@/lib/hooks/use-toast";
+import { ApiError } from "@/lib/hooks/use-api";
 
 /**
  * Default error handler for React Query errors

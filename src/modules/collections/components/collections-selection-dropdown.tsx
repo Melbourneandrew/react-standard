@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { useCollectionsQuery } from "../hooks/query/use-collections-query";
-import { useCollectionContext } from "../contexts/collection-context";
+import { useCollectionContext } from "@/modules/collections/contexts/collection-context";
+import { useCollectionsQuery } from "@/modules/collections/hooks/query/use-collections-query";
 import { Loader2 } from "lucide-react";
+import type { ReactNode } from "react";
+import { useState } from "react";
 
 /**
  * Dropdown for selecting a collection
@@ -18,7 +19,7 @@ import { Loader2 } from "lucide-react";
  * Convention: Uses shadcn Select component for consistent styling.
  * Loads collections when opened and navigates on selection.
  */
-export function CollectionsSelectionDropdown() {
+export function CollectionsSelectionDropdown(): ReactNode {
   const { currentCollectionId, navigateToCollection } = useCollectionContext();
   const [isOpen, setIsOpen] = useState(false);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { useItemCreateMutation } from "@/modules/items/hooks/query/use-item-create-mutation";
 import { ErrorTriggerButton } from "@/components/error-trigger-button";
@@ -30,7 +31,7 @@ interface ItemCreationDialogProps {
  * Optimistic Updates: New item appears in UI immediately with temporary ID.
  * The mutation handles cache invalidation to replace it with real item from server.
  */
-export function ItemCreationDialog({ open, onClose }: ItemCreationDialogProps) {
+export function ItemCreationDialog({ open, onClose }: ItemCreationDialogProps): ReactNode {
   const { createItemAsync, isCreatingItem } = useItemCreateMutation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");

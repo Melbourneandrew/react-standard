@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useItemDetail } from "@/modules/items/hooks/use-item-detail";
 import {
   Dialog,
@@ -24,7 +25,7 @@ interface ItemViewDialogProps {
  * The dialog automatically fetches data when itemId changes.
  * Collection ID is obtained from CollectionContext.
  */
-export function ItemViewDialog({ itemId, onClose }: ItemViewDialogProps) {
+export function ItemViewDialog({ itemId, onClose }: ItemViewDialogProps): ReactNode {
   const { item, isLoadingItem, itemError } = useItemDetail(itemId);
 
   return (

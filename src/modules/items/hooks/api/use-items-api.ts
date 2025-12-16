@@ -1,14 +1,14 @@
 import { useCallback } from "react";
-import { useApi } from "../../../../lib/hooks/use-api";
+import { useApi } from "@/lib/hooks/use-api";
 import type {
   ApiRequestParams,
   NoQueryParams,
-} from "../../../../lib/types/api-types";
+} from "@/lib/types/api-types";
 import type {
   Item,
   ItemSearchParams,
   ItemSearchResponse,
-} from "../../types/item";
+} from "@/modules/items/types/item";
 
 /**
  * API Hook - Pure API access with callApi

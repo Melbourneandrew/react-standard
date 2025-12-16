@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import { useItemSearch } from "../hooks/use-item-search";
-import type { Item, ItemSearchParams } from "../types/item";
+import { useItemSearch } from "@/modules/items/hooks/use-item-search";
+import type { Item, ItemSearchParams } from "@/modules/items/types/item";
 
 /**
  * Context - Aggregates and re-exports manager hooks that have SHARED STATE
@@ -45,7 +45,7 @@ interface ItemContextType {
 
 const ItemContext = createContext<ItemContextType | undefined>(undefined);
 
-export function ItemProvider({ children }: { children: ReactNode }) {
+export function ItemProvider({ children }: { children: ReactNode }): ReactNode {
   // Manager Hook: Fetch items with filters and pagination (SHARED STATE - URL based)
   const {
     items,

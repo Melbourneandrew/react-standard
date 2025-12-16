@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
-  getMockItems,
+  deleteMockItem,
   findMockItem,
   updateMockItem,
-  deleteMockItem,
 } from "@/app/api/mock-items-store";
+import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string; itemId: string }> };
 

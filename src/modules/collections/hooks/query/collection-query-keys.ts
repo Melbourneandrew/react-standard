@@ -1,4 +1,4 @@
-import type { CollectionSearchParams } from "../../types/collection";
+import type { CollectionSearchParams } from "@/modules/collections/types/collection";
 
 /**
  * Query Key Factory for Collections

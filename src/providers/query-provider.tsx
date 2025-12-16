@@ -18,7 +18,7 @@ import { ReactNode, useState } from "react";
  * refetching is DISABLED so you maintain control over when data is fetched.
  * Mutations handle cache invalidation explicitly via onSettled/onSuccess.
  */
-export function QueryProvider({ children }: { children: ReactNode }) {
+export function QueryProvider({ children }: { children: ReactNode }): ReactNode {
   const [queryClient] = useState(
     () =>
       new QueryClient({

@@ -118,7 +118,7 @@ export function useOptimisticMutation<
     },
 
     // ✅ Success callback
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables) => {
       customOnSuccess?.(data, variables);
     },
 

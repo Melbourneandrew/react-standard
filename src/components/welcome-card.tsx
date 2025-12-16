@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   Card,
   CardContent,
@@ -10,7 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { CollectionsSelectionDropdown } from "@/modules/collections/components/collections-selection-dropdown";
 
-export function WelcomeCard() {
+export function WelcomeCard(): ReactNode {
   return (
     <div className="pt-8 px-4">
       <Card className="w-full max-w-md mx-auto">

@@ -2,8 +2,8 @@
 
 import { createContext, useContext, ReactNode, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useCollectionsQuery } from "../hooks/query/use-collections-query";
-import type { Collection } from "../types/collection";
+import { useCollectionsQuery } from "@/modules/collections/hooks/query/use-collections-query";
+import type { Collection } from "@/modules/collections/types/collection";
 
 /**
  * Collection Context
@@ -36,7 +36,7 @@ const CollectionContext = createContext<CollectionContextType | undefined>(
   undefined,
 );
 
-export function CollectionProvider({ children }: { children: ReactNode }) {
+export function CollectionProvider({ children }: { children: ReactNode }): ReactNode {
   const params = useParams();
   const router = useRouter();
 

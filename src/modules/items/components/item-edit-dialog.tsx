@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useItemUpdateMutation } from "@/modules/items/hooks/query/use-item-update-mutation";
 import { ErrorTriggerButton } from "@/components/error-trigger-button";
@@ -31,7 +32,7 @@ interface ItemEditDialogProps {
  * Optimistic Updates: Changes appear in UI immediately. The mutation handles
  * cache invalidation automatically - no manual refetch callbacks needed.
  */
-export function ItemEditDialog({ item, onClose }: ItemEditDialogProps) {
+export function ItemEditDialog({ item, onClose }: ItemEditDialogProps): ReactNode {
   const { updateItemAsync, isUpdatingItem } = useItemUpdateMutation();
   // Initialize from props - parent's key prop will reset component when item changes
   const [name, setName] = useState(item?.name || "");
