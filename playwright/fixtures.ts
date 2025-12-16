@@ -43,6 +43,7 @@ const CURSOR_SCRIPT = `
       });
     },
     click: () => {
+      // Ripple effect
       ripple.style.left = (x - 30) + 'px';
       ripple.style.top = (y - 30) + 'px';
       ripple.style.transform = 'scale(0)';
@@ -53,6 +54,21 @@ const CURSOR_SCRIPT = `
         ripple.style.transform = 'scale(2)';
         ripple.style.opacity = '0';
       });
+
+      // Cursor bounce/squeeze effect
+      const bounceStart = performance.now();
+      function bounce() {
+        const elapsed = performance.now() - bounceStart;
+        const p = Math.min(elapsed / 150, 1);
+        // Squeeze down then spring back
+        const scaleX = 1 + Math.sin(p * Math.PI) * 0.15;
+        const scaleY = 1 - Math.sin(p * Math.PI) * 0.2;
+        const offsetY = Math.sin(p * Math.PI) * 3;
+        cursor.style.transform = 'translate(' + x + 'px,' + (y + offsetY) + 'px) scale(' + scaleX + ',' + scaleY + ')';
+        if (p < 1) requestAnimationFrame(bounce);
+        else cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      }
+      requestAnimationFrame(bounce);
     }
   };
 })();
