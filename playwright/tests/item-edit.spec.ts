@@ -36,8 +36,9 @@ test.describe("Item Edit", () => {
     const uniqueName = `Updated ${Date.now()}`;
     await cursor.fill(page, page.getByLabel("Name"), uniqueName);
 
-    // Save
+    // Save and wait for the mutation to complete
     await cursor.click(page, page.getByRole("button", { name: /save/i }));
+    await page.waitForLoadState("networkidle");
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });

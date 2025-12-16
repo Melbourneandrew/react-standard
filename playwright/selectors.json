@@ -260,6 +260,7 @@
     "exports": ["test", "expect", "cursor"],
     "purpose": "Provides test fixture and explicit cursor API for debug visualization",
     "debugEnvVar": "SHOW_CURSOR=true enables animated cursor",
+    "debugTimeout": "60000ms (vs 30000ms normal) - cursor animations add ~300ms per interaction",
     "cursorMethods": ["cursor.click(page, locator)", "cursor.fill(page, locator, value)", "cursor.hover(page, locator)"],
     "testCodeStyle": "Use cursor.* methods for interactions - explicit opt-in, no magic"
   }

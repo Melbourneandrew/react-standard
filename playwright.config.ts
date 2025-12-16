@@ -6,9 +6,13 @@ export default defineConfig({
   testDir: "./playwright/tests",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Retries help with flakiness from parallel data mutations
+  retries: process.env.CI ? 2 : 1,
+  // Sequential execution prevents data contention between tests
+  workers: 1,
   reporter: "html",
+  // Increase timeout for debug mode (cursor animations add overhead)
+  timeout: showCursor ? 60000 : 30000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",

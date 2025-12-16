@@ -43,8 +43,9 @@ await cursor.hover(page, locator);
 When running `pnpm test:debug` (SHOW_CURSOR=true):
 
 - Animated SVG cursor with arc movement
-- Click ripple effects
-- Fast human-like typing (~125 chars/sec)
+- Click ripple effects + cursor bounce on click
+- Fast human-like typing (~100 chars/sec)
+- **Test timeout increased to 60s** (cursor animations add ~300ms per interaction)
 
 ### Package Scripts
 
