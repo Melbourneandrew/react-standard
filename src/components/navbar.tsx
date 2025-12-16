@@ -1,6 +1,6 @@
 "use client";
 
-import { CollectionsSelectionDropdown } from "@/modules/collections/components/CollectionsSelectionDropdown";
+import { CollectionsSelectionDropdown } from "@/modules/collections/components/collections-selection-dropdown";
 import { Label } from "@/components/ui/label";
 
 export function Navbar() {
