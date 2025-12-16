@@ -195,7 +195,7 @@ async function moveCursorTo(
   page: Page,
   x: number,
   y: number,
-  duration: number = 500,
+  duration: number = 300,
 ) {
   await page.evaluate(
     async ([x, y, duration]) => {
@@ -209,7 +209,7 @@ async function moveCursorTo(
 async function moveCursorToElement(
   page: Page,
   locator: Locator,
-  duration: number = 500,
+  duration: number = 300,
 ): Promise<{ x: number; y: number } | null> {
   const box = await locator.boundingBox();
   if (box) {
@@ -233,7 +233,7 @@ async function clickCursor(page: Page, x: number, y: number) {
 async function clickAtElement(
   page: Page,
   locator: Locator,
-  duration: number = 500,
+  duration: number = 300,
 ) {
   const coords = await moveCursorToElement(page, locator, duration);
   if (coords) {
