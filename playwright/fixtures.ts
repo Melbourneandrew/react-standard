@@ -2,86 +2,151 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
 
-// Cursor injection script
+// Fast typing with minimal variation (avg ~20ms per char)
+function charDelay(): number {
+  return 15 + Math.floor(Math.random() * 10); // 15-25ms
+}
+
+// Cursor injection with arc movement and prominent ripple
 const CURSOR_SCRIPT = `
 (() => {
   if (window.__cursor) return;
 
-  const svg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
-
   const cursor = document.createElement('div');
-  cursor.innerHTML = svg;
-  cursor.style.cssText = 'position:fixed;top:0;left:0;width:24px;height:24px;pointer-events:none;z-index:999999;filter:drop-shadow(1px 1px 2px rgba(0,0,0,0.3));transform:translate(-100px,-100px);';
+  cursor.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
+  cursor.style.cssText = 'position:fixed;top:0;left:0;width:24px;height:24px;pointer-events:none;z-index:999999;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.4));';
   document.body.appendChild(cursor);
 
+  // Bigger, more visible ripple
   const ripple = document.createElement('div');
-  ripple.style.cssText = 'position:fixed;width:40px;height:40px;border-radius:50%;background:rgba(59,130,246,0.4);pointer-events:none;z-index:999998;transform:scale(0);opacity:0;';
+  ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.6) 0%,rgba(59,130,246,0) 70%);pointer-events:none;z-index:999998;transform:scale(0);opacity:0;';
   document.body.appendChild(ripple);
 
   let x = -100, y = -100;
+  cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
   window.__cursor = {
-    move: async (tx, ty, ms) => {
-      const sx = x, sy = y;
-      const start = performance.now();
-      return new Promise(r => {
-        const animate = () => {
-          const p = Math.min((performance.now() - start) / ms, 1);
-          const e = 1 - Math.pow(1 - p, 3);
-          x = sx + (tx - sx) * e;
-          y = sy + (ty - sy) * e;
+    // Arc movement - curves slightly perpendicular to travel direction
+    move: (tx, ty, ms) => {
+      return new Promise(resolve => {
+        const sx = x, sy = y;
+        const dx = tx - sx, dy = ty - sy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        // Arc height proportional to distance (max 20px)
+        const arcHeight = Math.min(dist * 0.08, 20);
+        // Perpendicular direction for arc
+        const perpX = dist > 0 ? -dy / dist : 0;
+        const perpY = dist > 0 ? dx / dist : 0;
+
+        const start = performance.now();
+
+        function animate() {
+          const elapsed = performance.now() - start;
+          const p = Math.min(elapsed / ms, 1);
+
+          // Ease out cubic
+          const ease = 1 - Math.pow(1 - p, 3);
+
+          // Arc offset peaks at middle of animation
+          const arcOffset = Math.sin(p * Math.PI) * arcHeight;
+
+          x = sx + dx * ease + perpX * arcOffset;
+          y = sy + dy * ease + perpY * arcOffset;
+
           cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
-          if (p < 1) requestAnimationFrame(animate);
-          else { x = tx; y = ty; r(); }
-        };
-        animate();
+
+          if (p < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            x = tx; y = ty;
+            cursor.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+            resolve();
+          }
+        }
+        requestAnimationFrame(animate);
       });
     },
+
+    // Click ripple with cursor bounce
     click: () => {
-      ripple.style.left = (x - 20) + 'px';
-      ripple.style.top = (y - 20) + 'px';
+      // Position ripple
+      ripple.style.left = (x - 30) + 'px';
+      ripple.style.top = (y - 30) + 'px';
       ripple.style.transform = 'scale(0)';
       ripple.style.opacity = '1';
       ripple.style.transition = 'none';
+
+      // Animate ripple
       requestAnimationFrame(() => {
-        ripple.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out';
-        ripple.style.transform = 'scale(1.2)';
+        ripple.style.transition = 'transform 0.35s ease-out, opacity 0.35s ease-out';
+        ripple.style.transform = 'scale(2)';
         ripple.style.opacity = '0';
       });
+
+      // Cursor bounce effect
+      const startY = y;
+      const bounceStart = performance.now();
+      function bounce() {
+        const elapsed = performance.now() - bounceStart;
+        const p = Math.min(elapsed / 150, 1);
+        const offset = Math.sin(p * Math.PI) * 4;
+        cursor.style.transform = 'translate(' + x + 'px,' + (startY + offset) + 'px)';
+        if (p < 1) requestAnimationFrame(bounce);
+      }
+      requestAnimationFrame(bounce);
     }
   };
 })();
 `;
 
 async function injectCursor(page: Page) {
-  try { await page.evaluate(CURSOR_SCRIPT); } catch {}
+  try {
+    await page.evaluate(CURSOR_SCRIPT);
+  } catch {}
 }
 
-async function moveCursor(page: Page, x: number, y: number) {
+async function moveCursor(page: Page, x: number, y: number, duration = 200) {
   try {
-    await page.evaluate(async ([x, y]) => {
-      await (window as any).__cursor?.move(x, y, 250);
-    }, [x, y] as const);
-    await page.waitForTimeout(280);
+    await page.evaluate(
+      async ([x, y, ms]) => {
+        await (window as any).__cursor?.move(x, y, ms);
+      },
+      [x, y, duration] as const
+    );
+    await page.waitForTimeout(duration + 30);
   } catch {}
 }
 
 async function clickEffect(page: Page) {
   try {
     await page.evaluate(() => (window as any).__cursor?.click());
+    await page.waitForTimeout(50);
   } catch {}
 }
 
-// Store original click per locator instance
-const origClicks = new WeakMap<Locator, Locator["click"]>();
+async function humanType(page: Page, text: string) {
+  for (const char of text) {
+    await page.keyboard.type(char, { delay: 0 });
+    await page.waitForTimeout(charDelay());
+  }
+}
 
-function wrapLocatorClick(page: Page, locator: Locator): Locator {
-  // Only wrap once
-  if (origClicks.has(locator)) return locator;
+// Store originals per locator
+const origMethods = new WeakMap<Locator, {
+  click: Locator["click"];
+  fill: Locator["fill"];
+}>();
 
-  const originalClick = locator.click.bind(locator);
-  origClicks.set(locator, originalClick);
+function wrapLocator(page: Page, locator: Locator): Locator {
+  if (origMethods.has(locator)) return locator;
 
+  const origClick = locator.click.bind(locator);
+  const origFill = locator.fill.bind(locator);
+
+  origMethods.set(locator, { click: origClick, fill: origFill });
+
+  // Wrap click with cursor animation
   locator.click = async (options?) => {
     try {
       const box = await locator.boundingBox({ timeout: 5000 });
@@ -90,7 +155,25 @@ function wrapLocatorClick(page: Page, locator: Locator): Locator {
         await clickEffect(page);
       }
     } catch {}
-    return originalClick(options);
+    return origClick(options);
+  };
+
+  // Wrap fill with cursor animation + human typing
+  locator.fill = async (value: string, options?) => {
+    try {
+      const box = await locator.boundingBox({ timeout: 5000 });
+      if (box) {
+        await moveCursor(page, box.x + box.width / 2, box.y + box.height / 2);
+        await clickEffect(page);
+      }
+    } catch {}
+    // Click to focus (original, no animation)
+    await origClick();
+    // Clear via keyboard (safer than locator.clear())
+    await page.keyboard.press("Meta+A"); // Cmd+A on Mac
+    await page.keyboard.press("Backspace");
+    // Type human-like
+    await humanType(page, value);
   };
 
   return locator;
@@ -103,7 +186,7 @@ function wrapPageLocators(page: Page) {
   wrappedPages.add(page);
 
   const wrap = (fn: (...args: any[]) => Locator) => {
-    return (...args: any[]) => wrapLocatorClick(page, fn(...args));
+    return (...args: any[]) => wrapLocator(page, fn(...args));
   };
 
   page.locator = wrap(page.locator.bind(page));
