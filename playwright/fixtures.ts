@@ -2,9 +2,9 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
 
-// Fast typing with minimal variation (avg ~20ms per char)
+// Very fast typing (avg ~8ms per char = 125 chars/sec)
 function charDelay(): number {
-  return 15 + Math.floor(Math.random() * 10); // 15-25ms
+  return 5 + Math.floor(Math.random() * 6); // 5-10ms
 }
 
 // Cursor injection with arc movement and prominent ripple
@@ -132,19 +132,19 @@ async function humanType(page: Page, text: string) {
   }
 }
 
-// Store originals per locator
-const origMethods = new WeakMap<Locator, {
-  click: Locator["click"];
-  fill: Locator["fill"];
-}>();
+// Track wrapped locators
+const wrappedLocators = new WeakSet<Locator>();
 
 function wrapLocator(page: Page, locator: Locator): Locator {
-  if (origMethods.has(locator)) return locator;
+  if (wrappedLocators.has(locator)) return locator;
+  wrappedLocators.add(locator);
 
   const origClick = locator.click.bind(locator);
   const origFill = locator.fill.bind(locator);
-
-  origMethods.set(locator, { click: origClick, fill: origFill });
+  const origFirst = locator.first.bind(locator);
+  const origLast = locator.last.bind(locator);
+  const origNth = locator.nth.bind(locator);
+  const origLocator = locator.locator.bind(locator);
 
   // Wrap click with cursor animation
   locator.click = async (options?) => {
@@ -167,14 +167,17 @@ function wrapLocator(page: Page, locator: Locator): Locator {
         await clickEffect(page);
       }
     } catch {}
-    // Click to focus (original, no animation)
     await origClick();
-    // Clear via keyboard (safer than locator.clear())
-    await page.keyboard.press("Meta+A"); // Cmd+A on Mac
+    await page.keyboard.press("Meta+A");
     await page.keyboard.press("Backspace");
-    // Type human-like
     await humanType(page, value);
   };
+
+  // Wrap chained locator methods so they return wrapped locators
+  locator.first = () => wrapLocator(page, origFirst());
+  locator.last = () => wrapLocator(page, origLast());
+  locator.nth = (index: number) => wrapLocator(page, origNth(index));
+  locator.locator = (selector: string) => wrapLocator(page, origLocator(selector));
 
   return locator;
 }
