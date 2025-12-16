@@ -36,11 +36,19 @@ export class ApiError extends Error {
   }
 }
 
-export function useApi() {
-  const callApi = async <T = any>(
+type UseApiReturn = {
+  callApi: <T = unknown>(
     method: HttpMethod,
     url: string,
-    data?: any,
+    data?: unknown,
+  ) => Promise<T>;
+};
+
+export function useApi(): UseApiReturn {
+  const callApi = async <T = unknown>(
+    method: HttpMethod,
+    url: string,
+    data?: unknown,
   ): Promise<T> => {
     try {
       const options: RequestInit = {

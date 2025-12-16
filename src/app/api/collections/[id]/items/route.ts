@@ -7,7 +7,7 @@ type RouteContext = { params: Promise<{ id: string }> };
  * GET /api/collections/[id]/items
  * Search and retrieve items for a specific collection
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id: collectionId } = await context.params;
     const searchParams = request.nextUrl.searchParams;
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  * POST /api/collections/[id]/items
  * Create a new item within a collection
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id: collectionId } = await context.params;
     const data = await request.json();

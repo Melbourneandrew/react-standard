@@ -29,7 +29,7 @@ interface ItemContextType {
   searchParams: ItemSearchParams;
   isItemSearchLoading: boolean;
   isItemSearchFetching: boolean;
-  itemSearchError: any;
+  itemSearchError: Error | null;
   setQuery: (query: string) => void;
   setSorting: (
     sortBy: "name" | "created_at" | "updated_at",
@@ -97,7 +97,7 @@ export function ItemProvider({ children }: { children: ReactNode }): ReactNode {
   return <ItemContext.Provider value={value}>{children}</ItemContext.Provider>;
 }
 
-export function useItemContext() {
+export function useItemContext(): ItemContextType {
   const context = useContext(ItemContext);
   if (!context) {
     throw new Error("useItemContext must be used within ItemProvider");

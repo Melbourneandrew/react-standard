@@ -1,4 +1,13 @@
 import { useItemsQuery } from "@/modules/items/hooks/query/use-items-query";
+import type { Item } from "@/modules/items/types/item";
+
+type UseItemDetailReturn = {
+  item: Item | null;
+  isLoadingItem: boolean;
+  isFetchingItem: boolean;
+  itemError: Error | null;
+  refetchItem: () => void;
+};
 
 /**
  * Manager Hook - Fetch and manage a single item
@@ -10,7 +19,7 @@ import { useItemsQuery } from "@/modules/items/hooks/query/use-items-query";
  * Use this when you need to display/edit a single item (e.g., in a dialog or detail view)
  * Collection ID is obtained from CollectionContext.
  */
-export function useItemDetail(itemId: string | null) {
+export function useItemDetail(itemId: string | null): UseItemDetailReturn {
   // Use the existing query hook with id filter - the endpoint returns a single-item array
   // Collection ID comes from CollectionContext
   const {

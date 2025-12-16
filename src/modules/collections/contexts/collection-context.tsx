@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
 import { useCollectionsQuery } from "@/modules/collections/hooks/query/use-collections-query";
 import type { Collection } from "@/modules/collections/types/collection";
+import { useParams, useRouter } from "next/navigation";
+import { createContext, ReactNode, useContext } from "react";
 
 /**
  * Collection Context
@@ -36,31 +36,27 @@ const CollectionContext = createContext<CollectionContextType | undefined>(
   undefined,
 );
 
-export function CollectionProvider({ children }: { children: ReactNode }): ReactNode {
+export function CollectionProvider({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode {
   const params = useParams();
   const router = useRouter();
 
   // Extract collection ID from route params
   // Route structure: /collections/[id]/...
-  const currentCollectionId = useMemo(() => {
-    if (params?.id && typeof params.id === "string") {
-      return params.id;
-    }
-    return undefined;
-  }, [params?.id]);
+  const currentCollectionId =
+    params?.id && typeof params.id === "string" ? params.id : undefined;
 
   // Fetch collections using the existing query hook
   const { data: collectionsData, isLoadingCollections } = useCollectionsQuery();
 
   // Extract the current collection from the collections query results
-  const currentCollection = useMemo<Collection | undefined>(() => {
-    if (!currentCollectionId || !collectionsData) {
-      return undefined;
-    }
-    return collectionsData.collections.find(
-      (c) => c.id === currentCollectionId,
-    );
-  }, [currentCollectionId, collectionsData]);
+  const currentCollection: Collection | undefined =
+    currentCollectionId && collectionsData
+      ? collectionsData.collections.find((c) => c.id === currentCollectionId)
+      : undefined;
 
   const isLoadingCollection = isLoadingCollections;
 
@@ -87,7 +83,7 @@ export function CollectionProvider({ children }: { children: ReactNode }): React
   );
 }
 
-export function useCollectionContext() {
+export function useCollectionContext(): CollectionContextType {
   const context = useContext(CollectionContext);
   if (!context) {
     throw new Error(

@@ -1,14 +1,36 @@
-import { useCallback } from "react";
 import { useApi } from "@/lib/hooks/use-api";
+import type { ApiRequestParams, NoQueryParams } from "@/lib/types/api-types";
 import type {
-  ApiRequestParams,
-  NoQueryParams,
-} from "@/lib/types/api-types";
-import type {
-  Item,
-  ItemSearchParams,
-  ItemSearchResponse,
+    Item,
+    ItemSearchParams,
+    ItemSearchResponse,
 } from "@/modules/items/types/item";
+
+type UseItemsApiReturn = {
+  searchItemsApi: (
+    params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>,
+  ) => Promise<ItemSearchResponse>;
+  fetchItemApi: (
+    params: ApiRequestParams<{ collectionId: string; itemId: string }>,
+  ) => Promise<Item>;
+  createItemApi: (
+    params: ApiRequestParams<
+      { collectionId: string },
+      NoQueryParams,
+      { name: string; description?: string }
+    >,
+  ) => Promise<Item>;
+  updateItemApi: (
+    params: ApiRequestParams<
+      { collectionId: string; itemId: string },
+      NoQueryParams,
+      Partial<Item>
+    >,
+  ) => Promise<Item>;
+  deleteItemApi: (
+    params: ApiRequestParams<{ collectionId: string; itemId: string }>,
+  ) => Promise<Item>;
+};
 
 /**
  * API Hook - Pure API access with callApi
@@ -20,121 +42,106 @@ import type {
  *
  * Updated to use nested collection routes: /api/collections/[id]/items
  */
-export function useItemsApi() {
+export function useItemsApi(): UseItemsApiReturn {
   const { callApi } = useApi();
 
   /**
    * Search items with pagination and filters for a specific collection
    * @param params - Request parameters with route params (collectionId) and query params (search filters)
    */
-  const searchItemsApi = useCallback(
-    async (
-      params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>,
-    ): Promise<ItemSearchResponse> => {
-      const { routeParams, queryParams = {} } = params;
-      const { collectionId } = routeParams;
+  const searchItemsApi = async (
+    params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>,
+  ): Promise<ItemSearchResponse> => {
+    const { routeParams, queryParams = {} } = params;
+    const { collectionId } = routeParams;
 
-      const searchParams = new URLSearchParams();
-      Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
+    const searchParams = new URLSearchParams();
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
 
-      const queryString = searchParams.toString();
-      return await callApi<ItemSearchResponse>(
-        "GET",
-        `/api/collections/${collectionId}/items${queryString ? `?${queryString}` : ""}`,
-      );
-    },
-    [callApi],
-  );
+    const queryString = searchParams.toString();
+    return await callApi<ItemSearchResponse>(
+      "GET",
+      `/api/collections/${collectionId}/items${queryString ? `?${queryString}` : ""}`,
+    );
+  };
 
   /**
    * Fetch a single item by ID
    * @param params - Request parameters with route params (collectionId, itemId)
    */
-  const fetchItemApi = useCallback(
-    async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
-    ): Promise<Item> => {
-      const { routeParams } = params;
-      const { collectionId, itemId } = routeParams;
+  const fetchItemApi = async (
+    params: ApiRequestParams<{ collectionId: string; itemId: string }>,
+  ): Promise<Item> => {
+    const { routeParams } = params;
+    const { collectionId, itemId } = routeParams;
 
-      return await callApi<Item>(
-        "GET",
-        `/api/collections/${collectionId}/items/${itemId}`,
-      );
-    },
-    [callApi],
-  );
+    return await callApi<Item>(
+      "GET",
+      `/api/collections/${collectionId}/items/${itemId}`,
+    );
+  };
 
   /**
    * Update an item
    * @param params - Request parameters with route params (collectionId, itemId) and body params (update data)
    */
-  const updateItemApi = useCallback(
-    async (
-      params: ApiRequestParams<
-        { collectionId: string; itemId: string },
-        NoQueryParams,
-        Partial<Item>
-      >,
-    ): Promise<Item> => {
-      const { routeParams, bodyParams } = params;
-      const { collectionId, itemId } = routeParams;
+  const updateItemApi = async (
+    params: ApiRequestParams<
+      { collectionId: string; itemId: string },
+      NoQueryParams,
+      Partial<Item>
+    >,
+  ): Promise<Item> => {
+    const { routeParams, bodyParams } = params;
+    const { collectionId, itemId } = routeParams;
 
-      return await callApi<Item>(
-        "PATCH",
-        `/api/collections/${collectionId}/items/${itemId}`,
-        bodyParams,
-      );
-    },
-    [callApi],
-  );
+    return await callApi<Item>(
+      "PATCH",
+      `/api/collections/${collectionId}/items/${itemId}`,
+      bodyParams,
+    );
+  };
 
   /**
    * Create a new item
    * @param params - Request parameters with route params (collectionId) and body params (item data)
    */
-  const createItemApi = useCallback(
-    async (
-      params: ApiRequestParams<
-        { collectionId: string },
-        NoQueryParams,
-        { name: string; description?: string }
-      >,
-    ): Promise<Item> => {
-      const { routeParams, bodyParams } = params;
-      const { collectionId } = routeParams;
+  const createItemApi = async (
+    params: ApiRequestParams<
+      { collectionId: string },
+      NoQueryParams,
+      { name: string; description?: string }
+    >,
+  ): Promise<Item> => {
+    const { routeParams, bodyParams } = params;
+    const { collectionId } = routeParams;
 
-      return await callApi<Item>(
-        "POST",
-        `/api/collections/${collectionId}/items`,
-        bodyParams,
-      );
-    },
-    [callApi],
-  );
+    return await callApi<Item>(
+      "POST",
+      `/api/collections/${collectionId}/items`,
+      bodyParams,
+    );
+  };
 
   /**
    * Delete an item
    * @param params - Request parameters with route params (collectionId, itemId)
    */
-  const deleteItemApi = useCallback(
-    async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
-    ): Promise<Item> => {
-      const { routeParams } = params;
-      const { collectionId, itemId } = routeParams;
+  const deleteItemApi = async (
+    params: ApiRequestParams<{ collectionId: string; itemId: string }>,
+  ): Promise<Item> => {
+    const { routeParams } = params;
+    const { collectionId, itemId } = routeParams;
 
-      return await callApi<Item>(
-        "DELETE",
-        `/api/collections/${collectionId}/items/${itemId}`,
-      );
-    },
-    [callApi],
-  );
+    return await callApi<Item>(
+      "DELETE",
+      `/api/collections/${collectionId}/items/${itemId}`,
+    );
+  };
 
   return {
     searchItemsApi,

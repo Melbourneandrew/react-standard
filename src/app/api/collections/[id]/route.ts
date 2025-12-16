@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { MOCK_COLLECTIONS } from "@/app/api/mock-data";
+import { NextRequest, NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -7,7 +7,7 @@ type RouteContext = { params: Promise<{ id: string }> };
  * GET /api/collections/[id]
  * Retrieve a single collection by ID
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id } = await context.params;
     const collection = MOCK_COLLECTIONS.find((c) => c.id === id);

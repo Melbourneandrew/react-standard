@@ -12,7 +12,10 @@
     "check:all": "pnpm check:tsc && pnpm check:eslint && pnpm check:prettier",
     "fix:eslint": "eslint . --fix",
     "fix:prettier": "prettier --write .",
-    "fix:all": "pnpm fix:eslint && pnpm fix:prettier"
+    "fix:all": "pnpm fix:eslint && pnpm fix:prettier",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

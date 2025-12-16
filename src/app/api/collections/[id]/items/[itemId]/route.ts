@@ -11,7 +11,7 @@ type RouteContext = { params: Promise<{ id: string; itemId: string }> };
  * GET /api/collections/[id]/items/[itemId]
  * Fetch a single item by ID within a collection
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id: collectionId, itemId } = await context.params;
     const item = findMockItem(itemId, collectionId);
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  * PATCH /api/collections/[id]/items/[itemId]
  * Update an item within a collection
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id: collectionId, itemId } = await context.params;
     const data = await request.json();
@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  * Delete an item within a collection
  * Returns the deleted item for consistency with update operations
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext): Promise<NextResponse> {
   try {
     const { id: collectionId, itemId } = await context.params;
     const deletedItem = deleteMockItem(itemId, collectionId);

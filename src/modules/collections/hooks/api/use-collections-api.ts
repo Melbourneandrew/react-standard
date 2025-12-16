@@ -1,11 +1,19 @@
-import { useCallback } from "react";
 import { useApi } from "@/lib/hooks/use-api";
 import type { ApiRequestParams, NoRouteParams } from "@/lib/types/api-types";
 import type {
-  Collection,
-  CollectionSearchParams,
-  CollectionSearchResponse,
+    Collection,
+    CollectionSearchParams,
+    CollectionSearchResponse,
 } from "@/modules/collections/types/collection";
+
+type UseCollectionsApiReturn = {
+  searchCollectionsApi: (
+    params?: ApiRequestParams<NoRouteParams, CollectionSearchParams>,
+  ) => Promise<CollectionSearchResponse>;
+  fetchCollectionApi: (
+    params: ApiRequestParams<{ id: string }>,
+  ) => Promise<Collection>;
+};
 
 /**
  * API Hook - Pure API access with callApi
@@ -15,50 +23,46 @@ import type {
  *
  * This is the Repository layer - no state management, just API calls
  */
-export function useCollectionsApi() {
+export function useCollectionsApi(): UseCollectionsApiReturn {
   const { callApi } = useApi();
 
   /**
    * Search collections with pagination and filters
    * @param params - Request parameters with query params (search filters)
    */
-  const searchCollectionsApi = useCallback(
-    async (
-      params: ApiRequestParams<NoRouteParams, CollectionSearchParams> = {
-        queryParams: {},
-      },
-    ): Promise<CollectionSearchResponse> => {
-      const { queryParams = {} } = params;
-      const searchParams = new URLSearchParams();
-
-      Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-
-      const queryString = searchParams.toString();
-      return await callApi<CollectionSearchResponse>(
-        "GET",
-        `/api/collections${queryString ? `?${queryString}` : ""}`,
-      );
+  const searchCollectionsApi = async (
+    params: ApiRequestParams<NoRouteParams, CollectionSearchParams> = {
+      queryParams: {},
     },
-    [callApi],
-  );
+  ): Promise<CollectionSearchResponse> => {
+    const { queryParams = {} } = params;
+    const searchParams = new URLSearchParams();
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const queryString = searchParams.toString();
+    return await callApi<CollectionSearchResponse>(
+      "GET",
+      `/api/collections${queryString ? `?${queryString}` : ""}`,
+    );
+  };
 
   /**
    * Fetch a single collection by ID
    * @param params - Request parameters with route params (id)
    */
-  const fetchCollectionApi = useCallback(
-    async (params: ApiRequestParams<{ id: string }>): Promise<Collection> => {
-      const { routeParams } = params;
-      const { id } = routeParams;
+  const fetchCollectionApi = async (
+    params: ApiRequestParams<{ id: string }>,
+  ): Promise<Collection> => {
+    const { routeParams } = params;
+    const { id } = routeParams;
 
-      return await callApi<Collection>("GET", `/api/collections/${id}`);
-    },
-    [callApi],
-  );
+    return await callApi<Collection>("GET", `/api/collections/${id}`);
+  };
 
   return { searchCollectionsApi, fetchCollectionApi };
 }

@@ -226,10 +226,27 @@ const collectionWords = [
   "Axis",
 ];
 
+type MockCollection = {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type MockItem = {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  collection_id: string;
+};
+
 /**
  * Generates an array of mock collections with random one-word names
  */
-export function generateMockCollections(count: number = 5) {
+export function generateMockCollections(count: number = 5): MockCollection[] {
   const baseDate = new Date("2024-01-01T08:00:00Z");
   const usedNames = new Set<string>();
   const collections = [];
@@ -264,7 +281,7 @@ export function generateMockCollections(count: number = 5) {
 export function generateMockItems(
   count: number = 100,
   collectionId: string = "coll-1",
-) {
+): MockItem[] {
   const baseDate = new Date("2024-01-01T10:00:00Z");
 
   return Array.from({ length: count }, (_, i) => {
@@ -282,10 +299,15 @@ export function generateMockItems(
   });
 }
 
+type MockData = {
+  collections: MockCollection[];
+  items: MockItem[];
+};
+
 /**
  * Generates all mock data: 5 collections with 100 items each
  */
-export function generateAllMockData() {
+export function generateAllMockData(): MockData {
   const collections = generateMockCollections();
 
   // Generate 100 items for each collection

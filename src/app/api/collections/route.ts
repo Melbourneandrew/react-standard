@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
 import { MOCK_COLLECTIONS } from "@/app/api/mock-data";
 import type {
-  CollectionSearchParams,
-  CollectionSearchResponse,
+    CollectionSearchParams,
+    CollectionSearchResponse,
 } from "@/modules/collections/types/collection";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/collections
  * Search and retrieve collections
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const searchParams = request.nextUrl.searchParams;
 
