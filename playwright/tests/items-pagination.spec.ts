@@ -3,7 +3,6 @@ import { expect, test } from "@playwright/test";
 test.describe("Items Pagination", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
-    // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({
       timeout: 10000,
     });
@@ -12,11 +11,7 @@ test.describe("Items Pagination", () => {
   test("should show pagination controls when there are multiple pages", async ({
     page,
   }) => {
-    // Collection has 100 items, so pagination should be visible
-    await expect(
-      page.getByRole("button", { name: "Previous" }),
-    ).toBeVisible();
-    // Use exact: true to avoid matching Next.js dev tools button
+    await expect(page.getByRole("button", { name: "Previous" })).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Next", exact: true }),
     ).toBeVisible();
@@ -27,21 +22,14 @@ test.describe("Items Pagination", () => {
 
   test("should disable Previous button on first page", async ({ page }) => {
     const previousButton = page.getByRole("button", { name: "Previous" });
-
     await expect(previousButton).toBeDisabled();
   });
 
   test("should navigate to next page", async ({ page }) => {
-    // Use exact: true to avoid matching Next.js dev tools button
     const nextButton = page.getByRole("button", { name: "Next", exact: true });
-
-    // Click next
     await nextButton.click();
 
-    // URL should reflect page 2
     await expect(page).toHaveURL(/page=2/);
-
-    // Should show page 2 of X
     await expect(page.getByText(/Page 2 of \d+/)).toBeVisible();
   });
 
@@ -53,13 +41,11 @@ test.describe("Items Pagination", () => {
     // Click previous
     await page.getByRole("button", { name: "Previous" }).click();
 
-    // Should be back on page 1 (no page param or page=1)
     await expect(page.getByText(/Page 1 of \d+/)).toBeVisible();
   });
 
   test("should disable Next button on last page", async ({ page }) => {
-    // Navigate to the last page by going through pages
-    // First, get the total pages from the text
+    // Get total pages
     const pageInfo = page.getByText(/Page \d+ of (\d+)/);
     const text = await pageInfo.textContent();
     const totalPages = parseInt(text?.match(/of (\d+)/)?.[1] || "1");
@@ -75,10 +61,9 @@ test.describe("Items Pagination", () => {
       page.getByRole("button", { name: "Next", exact: true }),
     ).toBeDisabled();
   });
-
 });
 
-// Separate describe block for tests that need custom route setup
+// Separate describe block for tests needing custom route setup
 test.describe("Items Pagination - Edge Cases", () => {
   test("should not show pagination controls for small collections", async ({
     page,
@@ -107,14 +92,15 @@ test.describe("Items Pagination - Edge Cases", () => {
       });
     });
 
-    // Navigate AFTER setting up the route
     await page.goto("/collections/coll-1");
 
     // Wait for the mocked item to appear
     await expect(page.getByText("Single Item")).toBeVisible({ timeout: 10000 });
 
-    // Pagination controls should not be visible (only 1 page)
-    await expect(page.getByRole("button", { name: "Previous" })).not.toBeVisible();
+    // Pagination controls should not be visible
+    await expect(
+      page.getByRole("button", { name: "Previous" }),
+    ).not.toBeVisible();
     await expect(
       page.getByRole("button", { name: "Next", exact: true }),
     ).not.toBeVisible();

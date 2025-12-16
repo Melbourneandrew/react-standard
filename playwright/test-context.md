@@ -2,23 +2,105 @@
 
 This document provides context for generating and maintaining Playwright tests from the Gherkin feature files.
 
+## Test Structure Conventions
+
+### File Mapping
+
+Tests follow a **1:1 mapping** with feature files:
+
+| Feature File | Test File |
+| ------------ | --------- |
+| `features/collections.feature` | `tests/collections.spec.ts` |
+| `features/error-handling.feature` | `tests/error-handling.spec.ts` |
+| `features/item-create.feature` | `tests/item-create.spec.ts` |
+| `features/item-delete.feature` | `tests/item-delete.spec.ts` |
+| `features/item-edit.feature` | `tests/item-edit.spec.ts` |
+| `features/item-view.feature` | `tests/item-view.spec.ts` |
+| `features/items-list.feature` | `tests/items-list.spec.ts` |
+| `features/items-pagination.feature` | `tests/items-pagination.spec.ts` |
+| `features/items-search.feature` | `tests/items-search.spec.ts` |
+
+### Test Setup Pattern
+
+Item-related tests (item-create, item-view, item-edit, item-delete) use a shared `beforeEach`:
+
+```typescript
+test.beforeEach(async ({ page }) => {
+  await page.goto("/collections/coll-1");
+  await expect(page.locator(".animate-spin")).not.toBeVisible({
+    timeout: 10000,
+  });
+});
+```
+
+Tests that need custom route mocking should use a **separate describe block** without `beforeEach` to set up routes before navigation.
+
 ## Application Overview
 
 A collections and items management app built with Next.js 15, React 19, and TanStack Query.
 
 ### Routes
 
-| Route                    | Description                    |
-| ------------------------ | ------------------------------ |
-| `/`                      | Welcome page with collection selector |
-| `/collections/:id`       | Items list for a specific collection |
+| Route | Description |
+| ----- | ----------- |
+| `/` | Welcome page with collection selector |
+| `/collections/:id` | Items list for a specific collection |
 
 ### URL Parameters
 
-| Parameter | Example          | Description                     |
-| --------- | ---------------- | ------------------------------- |
-| `query`   | `?query=foo`     | Search filter for items         |
-| `page`    | `?page=2`        | Current pagination page         |
+| Parameter | Example | Description |
+| --------- | ------- | ----------- |
+| `query` | `?query=foo` | Search filter for items |
+| `page` | `?page=2` | Current pagination page |
+
+## API Response Format
+
+### Items List Response
+
+The API uses **snake_case** for field names:
+
+```json
+{
+  "items": [...],
+  "total_count": 100,
+  "page": 1,
+  "page_size": 10,
+  "total_pages": 10
+}
+```
+
+### Item Object
+
+```json
+{
+  "id": "1",
+  "name": "Azure Phoenix Protocol",
+  "description": "Optional description",
+  "collection_id": "coll-1",
+  "created_at": "2024-01-01T00:00:00.000Z",
+  "updated_at": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Mock Route Pattern
+
+To intercept API requests:
+
+```typescript
+await page.route("**/api/collections/*/items*", (route) => {
+  route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      items: [...],
+      total_count: 0,
+      page: 1,
+      page_size: 10,
+      total_pages: 0,
+    }),
+  });
+});
+```
 
 ## Mock Data
 
@@ -42,30 +124,33 @@ The app uses in-memory mock data generated at runtime.
 
 - **Component**: Radix UI Select
 - **Role**: `combobox`
-- **Location**: Welcome page card and collection pages
+- **Location**: Welcome page card AND navbar (TWO instances on home page)
 - **Behavior**: Lazy-loads collections when opened
 
 ### Items List
 
 - **Item card selector**: `.rounded-lg.border`
+- **Item name**: `h3` element within card
 - **Loading indicator**: `.animate-spin` (Loader2 icon)
 - **Empty state text**: "No items found"
+- **Items count**: Text matching `/\d+ items?/`
 
 ### Item Action Buttons
 
 Each item card has 3 action buttons with Lucide icons:
 
-| Action | Icon Class          | Position |
-| ------ | ------------------- | -------- |
-| View   | `svg.lucide-eye`    | 1st      |
-| Edit   | `svg.lucide-pencil` | 2nd      |
-| Delete | `svg.lucide-trash-2`| 3rd      |
+| Action | Icon Class | Selector |
+| ------ | ---------- | -------- |
+| View | `svg.lucide-eye` | `button:has(svg.lucide-eye)` |
+| Edit | `svg.lucide-pencil` | `button:has(svg.lucide-pencil)` |
+| Delete | `svg.lucide-trash-2` | `button:has(svg.lucide-trash-2)` |
 
 ### Pagination
 
 - **Previous button**: `getByRole("button", { name: "Previous" })`
 - **Next button**: `getByRole("button", { name: "Next", exact: true })` ⚠️
 - **Page info**: Text matching `/Page \d+ of \d+/`
+- **Visibility**: Only shown when `totalPages > 1`
 
 ### Create Button
 
@@ -77,6 +162,24 @@ Each item card has 3 action buttons with Lucide icons:
 - **Role**: `dialog`
 - **Close methods**: Cancel button, Escape key, or clicking outside
 - **Form fields**: Labeled inputs (`getByLabel("Name")`, `getByLabel("Description")`)
+
+#### View Dialog Content
+
+| Label | Description |
+| ----- | ----------- |
+| Dialog title (`h2`) | Shows item name after loading |
+| "Description" | Label for description (only shown if item has description) |
+| "Created" | Label for creation date |
+| "Last Updated" | Label for last updated date |
+
+#### Dialog Action Buttons
+
+| Dialog | Action | Selector Pattern |
+| ------ | ------ | ---------------- |
+| Create | Create | `/create/i` |
+| Edit | Save | `/save/i` |
+| Delete | Delete | `/delete/i` |
+| All | Cancel | `/cancel/i` |
 
 ## Known Quirks
 
@@ -108,11 +211,37 @@ await page.getByRole("combobox").click();
 await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 ```
 
+### Multiple Comboboxes on Home Page
+
+The home page has TWO comboboxes (navbar + welcome card). Use positional selectors:
+
+```typescript
+const navDropdown = page.getByRole("combobox").first();
+const cardDropdown = page.getByRole("combobox").nth(1);
+```
+
+### Optional Description Field
+
+- Description is **not required** when creating/editing items
+- Description paragraph only shows in item cards **if the item has a description**
+- Description label only shows in view dialog **if the item has a description**
+
+### Mutation Timing
+
+After mutations (create/update/delete), optimistic updates may need time to settle:
+
+```typescript
+// Wait for dialog to close after mutation
+await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
+```
+
 ## Timing Recommendations
 
-| Operation              | Recommended Timeout |
-| ---------------------- | ------------------- |
-| Items loading          | 10000ms             |
-| Collection dropdown    | 10000ms             |
-| Search URL update      | 5000ms              |
-| Dialog animations      | Default (5000ms)    |
+| Operation | Recommended Timeout |
+| --------- | ------------------- |
+| Items loading | 10000ms |
+| Collection dropdown | 10000ms |
+| Search URL update | 5000ms |
+| Search results | 10000ms |
+| Dialog close after mutation | 15000ms |
+| Default | 5000ms |

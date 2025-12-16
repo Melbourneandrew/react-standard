@@ -3,18 +3,15 @@ import { expect, test } from "@playwright/test";
 test.describe("Item Creation", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
-    // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({
       timeout: 10000,
     });
   });
 
   test("should open create dialog when clicking + button", async ({ page }) => {
-    // The + button is next to the search input
     const createButton = page.locator("button:has(svg.lucide-plus)");
     await createButton.click();
 
-    // Dialog should open
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
@@ -27,21 +24,19 @@ test.describe("Item Creation", () => {
     // Fill in the form
     const uniqueName = `Test Item ${Date.now()}`;
     await page.getByLabel("Name").fill(uniqueName);
-    await page
-      .getByLabel("Description")
-      .fill("Test description for new item");
+    await page.getByLabel("Description").fill("Test description for new item");
 
     // Submit
     await page.getByRole("button", { name: /create/i }).click();
 
-    // Dialog should close (wait for mutation + animation)
+    // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
 
     // New item should appear in the list (search for it)
     await page.getByPlaceholder("Search...").fill(uniqueName);
     await expect(page).toHaveURL(/query=/, { timeout: 5000 });
 
-    // Wait for search results and cache invalidation
+    // Wait for search results
     await page.waitForTimeout(1000);
     await expect(page.getByText(uniqueName)).toBeVisible({ timeout: 10000 });
   });
@@ -54,10 +49,9 @@ test.describe("Item Creation", () => {
     await createButton.click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
-    // Fill in only the name (leave description empty)
+    // Fill in only the name
     const uniqueName = `NameOnly ${Date.now()}`;
     await page.getByLabel("Name").fill(uniqueName);
-    // Don't fill description
 
     // Submit
     await page.getByRole("button", { name: /create/i }).click();

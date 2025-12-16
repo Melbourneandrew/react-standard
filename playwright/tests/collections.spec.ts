@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Collection Selection", () => {
   test("should show welcome page with collection dropdown", async ({
@@ -12,8 +12,7 @@ test.describe("Collection Selection", () => {
       page.getByText("Please select a collection from the dropdown"),
     ).toBeVisible();
 
-    // Should see collection dropdowns (one in navbar, one in card)
-    // Just verify at least one exists
+    // Should see collection dropdown (at least one exists)
     await expect(page.getByRole("combobox").first()).toBeVisible();
   });
 

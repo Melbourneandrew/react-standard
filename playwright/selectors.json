@@ -2,6 +2,26 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Playwright selector mappings for test generation",
 
+  "testStructure": {
+    "fileMapping": "1:1 mapping between feature files and test files",
+    "featureToTest": {
+      "collections.feature": "collections.spec.ts",
+      "error-handling.feature": "error-handling.spec.ts",
+      "item-create.feature": "item-create.spec.ts",
+      "item-delete.feature": "item-delete.spec.ts",
+      "item-edit.feature": "item-edit.spec.ts",
+      "item-view.feature": "item-view.spec.ts",
+      "items-list.feature": "items-list.spec.ts",
+      "items-pagination.feature": "items-pagination.spec.ts",
+      "items-search.feature": "items-search.spec.ts"
+    },
+    "sharedBeforeEach": {
+      "appliesTo": ["item-create", "item-view", "item-edit", "item-delete"],
+      "navigateTo": "/collections/coll-1",
+      "waitFor": "loading spinner to disappear"
+    }
+  },
+
   "routes": {
     "home": "/",
     "collection": "/collections/:id"
@@ -12,16 +32,45 @@
     "page": "page"
   },
 
+  "api": {
+    "itemsEndpoint": "/api/collections/:id/items",
+    "mockRoutePattern": "**/api/collections/*/items*",
+    "responseFormat": {
+      "fieldNaming": "snake_case",
+      "listResponse": {
+        "items": "array of item objects",
+        "total_count": "number",
+        "page": "number",
+        "page_size": "number",
+        "total_pages": "number"
+      },
+      "itemObject": {
+        "id": "string",
+        "name": "string",
+        "description": "string | undefined",
+        "collection_id": "string",
+        "created_at": "ISO date string",
+        "updated_at": "ISO date string"
+      }
+    }
+  },
+
   "mockData": {
     "collectionIds": ["coll-1", "coll-2", "coll-3", "coll-4", "coll-5"],
     "itemsPerCollection": 100,
-    "itemsPerPage": 10
+    "itemsPerPage": 10,
+    "totalPages": 10
   },
 
   "elements": {
     "collectionDropdown": {
       "role": "combobox",
-      "description": "Radix Select trigger for collection selection"
+      "description": "Radix Select trigger for collection selection",
+      "multipleInstances": {
+        "homePage": true,
+        "navbar": ".first()",
+        "welcomeCard": ".nth(1)"
+      }
     },
     "collectionOptions": {
       "role": "listbox",
@@ -41,6 +90,14 @@
     "itemName": {
       "selector": "h3",
       "parent": "itemCard"
+    },
+    "itemDescription": {
+      "selector": "p.text-sm.text-muted-foreground",
+      "parent": "itemCard",
+      "conditional": "only rendered if item has description"
+    },
+    "itemsCount": {
+      "pattern": "/\\d+ items?/"
     },
     "emptyState": {
       "text": "No items found"
@@ -95,18 +152,38 @@
         "required": false
       }
     },
+    "viewDialogLabels": {
+      "title": "h2 element shows item name after loading",
+      "description": "Description (conditional - only if item has description)",
+      "createdDate": "Created",
+      "updatedDate": "Last Updated"
+    },
+    "loadingState": {
+      "title": "Loading..."
+    },
+    "errorState": {
+      "title": "Error"
+    },
     "actions": {
       "create": {
-        "pattern": "/create/i"
+        "pattern": "/create/i",
+        "usedIn": "item-create dialog"
       },
       "save": {
-        "pattern": "/save/i"
+        "pattern": "/save/i",
+        "usedIn": "item-edit dialog"
       },
       "delete": {
-        "pattern": "/delete/i"
+        "pattern": "/delete/i",
+        "usedIn": "item-delete confirmation dialog"
       },
       "cancel": {
-        "pattern": "/cancel/i"
+        "pattern": "/cancel/i",
+        "usedIn": "all dialogs"
+      },
+      "close": {
+        "name": "Close",
+        "usedIn": "item-view dialog"
       }
     }
   },
@@ -116,6 +193,18 @@
       "issue": "Next.js dev tools button has 'Next' in accessible name",
       "solution": "Use { exact: true } for pagination Next button",
       "affectedSelector": "nextPage"
+    },
+    "paginationVisibility": {
+      "issue": "Pagination controls only render when totalPages > 1",
+      "solution": "Tests checking for hidden pagination must mock API to return totalPages: 1"
+    },
+    "optionalDescription": {
+      "issue": "Description field is optional, UI elements conditional",
+      "locations": ["item card description paragraph", "view dialog description label"]
+    },
+    "routeMockingWithBeforeEach": {
+      "issue": "beforeEach navigates before test can set up route mocks",
+      "solution": "Use separate describe block without beforeEach for tests needing route mocks"
     }
   },
 
@@ -124,6 +213,7 @@
     "collectionDropdown": 10000,
     "searchUrlUpdate": 5000,
     "dialogClose": 10000,
+    "dialogCloseAfterMutation": 15000,
     "searchResults": 10000,
     "default": 5000
   },
@@ -131,6 +221,8 @@
   "notes": {
     "multipleComboboxes": "Home page has TWO comboboxes (navbar + welcome card). Use .first() or .nth(1) to disambiguate.",
     "mutationTiming": "After mutations (create/update/delete), wait for cache invalidation before asserting on updated data.",
-    "invalidCollectionId": "Invalid collection IDs still render the items page (with empty/error state), not a dedicated 'not found' page."
+    "invalidCollectionId": "Invalid collection IDs still render the items page (with empty/error state), not a dedicated 'not found' page.",
+    "snakeCaseApi": "API uses snake_case field names (total_count, page_size, total_pages, collection_id, created_at, updated_at)",
+    "uniqueTestData": "Use Date.now() for unique names in create/update tests to avoid conflicts in parallel execution"
   }
 }

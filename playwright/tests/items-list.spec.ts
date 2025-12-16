@@ -2,12 +2,11 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Items List", () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to a collection with items
     await page.goto("/collections/coll-1");
   });
 
   test("should display items in the collection", async ({ page }) => {
-    // Wait for items to load (loading spinner should disappear)
+    // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({
       timeout: 10000,
     });
@@ -21,7 +20,6 @@ test.describe("Items List", () => {
   });
 
   test("should display item name and description", async ({ page }) => {
-    // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({
       timeout: 10000,
     });
@@ -30,20 +28,19 @@ test.describe("Items List", () => {
     const firstItem = page.locator(".rounded-lg.border").first();
     await expect(firstItem.locator("h3")).toBeVisible();
 
-    // Verify we can read the item name text
+    // Verify we can read the item name
     const itemName = await firstItem.locator("h3").textContent();
     expect(itemName).toBeTruthy();
   });
 
   test("should show action buttons for each item", async ({ page }) => {
-    // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({
       timeout: 10000,
     });
 
     const firstItem = page.locator(".rounded-lg.border").first();
 
-    // Should have view, edit, delete buttons
+    // Should have 3 action buttons (view, edit, delete)
     await expect(firstItem.getByRole("button").first()).toBeVisible();
     expect(await firstItem.getByRole("button").count()).toBe(3);
   });
@@ -79,7 +76,6 @@ test.describe("Items List", () => {
 
     await page.goto("/collections/coll-1");
 
-    // Should show "No items found" message
     await expect(page.getByText("No items found")).toBeVisible({
       timeout: 10000,
     });
