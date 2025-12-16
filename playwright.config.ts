@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const showCursor = process.env.SHOW_CURSOR === "true";
+const debugVisual = process.env.DEBUG_VISUAL === "true";
 
 export default defineConfig({
   testDir: "./playwright/tests",
@@ -11,13 +11,13 @@ export default defineConfig({
   // Sequential execution prevents data contention between tests
   workers: 1,
   reporter: "html",
-  // Increase timeout for debug mode (cursor animations add overhead)
-  timeout: showCursor ? 60000 : 30000,
+  // Increase timeout for visual debug mode (animations add overhead)
+  timeout: debugVisual ? 60000 : 30000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
-    // Slow down operations when showing cursor
-    ...(showCursor && {
+    // Slow down operations in visual debug mode
+    ...(debugVisual && {
       launchOptions: { slowMo: 100 },
     }),
   },

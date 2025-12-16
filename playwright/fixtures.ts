@@ -1,6 +1,6 @@
 import { test as base, expect, Locator, Page } from "@playwright/test";
 
-const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
+const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
 
 // Cursor injection script
 const CURSOR_SCRIPT = `
@@ -13,7 +13,7 @@ const CURSOR_SCRIPT = `
   document.body.appendChild(cursor);
 
   const ripple = document.createElement('div');
-  ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.6) 0%,rgba(59,130,246,0) 70%);pointer-events:none;z-index:999998;transform:scale(0);opacity:0;';
+  ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.6) 0%,rgba(59,130,246,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
   document.body.appendChild(ripple);
 
   let x = -100, y = -100;
@@ -43,17 +43,17 @@ const CURSOR_SCRIPT = `
       });
     },
     click: () => {
-      // Ripple effect
+      // Ripple effect - use scale(0.01) not scale(0) for proper CSS transition
       ripple.style.left = (x - 30) + 'px';
       ripple.style.top = (y - 30) + 'px';
-      ripple.style.transform = 'scale(0)';
-      ripple.style.opacity = '1';
       ripple.style.transition = 'none';
-      requestAnimationFrame(() => {
-        ripple.style.transition = 'transform 0.35s ease-out, opacity 0.35s ease-out';
-        ripple.style.transform = 'scale(2)';
-        ripple.style.opacity = '0';
-      });
+      ripple.style.transform = 'scale(0.01)';
+      ripple.style.opacity = '1';
+      // Force reflow to ensure transition works
+      ripple.offsetWidth;
+      ripple.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
+      ripple.style.transform = 'scale(2.5)';
+      ripple.style.opacity = '0';
 
       // Cursor bounce/squeeze effect
       const bounceStart = performance.now();
@@ -75,14 +75,14 @@ const CURSOR_SCRIPT = `
 `;
 
 async function injectCursor(page: Page) {
-  if (!SHOW_CURSOR) return;
+  if (!DEBUG_VISUAL) return;
   try {
     await page.evaluate(CURSOR_SCRIPT);
   } catch {}
 }
 
 async function animateCursorTo(page: Page, locator: Locator) {
-  if (!SHOW_CURSOR) return;
+  if (!DEBUG_VISUAL) return;
   try {
     const box = await locator.boundingBox({ timeout: 3000 });
     if (box) {
@@ -97,7 +97,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
 }
 
 async function animateClick(page: Page) {
-  if (!SHOW_CURSOR) return;
+  if (!DEBUG_VISUAL) return;
   try {
     await page.evaluate(() => (window as any).__cursor?.click());
     await page.waitForTimeout(50);
@@ -105,19 +105,19 @@ async function animateClick(page: Page) {
 }
 
 // Use Playwright's built-in delay - much more efficient than manual loops
-const TYPE_DELAY = 10; // ms per character when SHOW_CURSOR is on
+const TYPE_DELAY = 10; // ms per character when DEBUG_VISUAL is on
 
 /**
  * Cursor interaction helpers.
- * When SHOW_CURSOR=true: animates cursor before action
- * When SHOW_CURSOR=false: just performs the action directly
+ * When DEBUG_VISUAL=true: animates cursor before action
+ * When DEBUG_VISUAL=false: just performs the action directly
  */
 export const cursor = {
   /**
    * Click with optional cursor animation
    */
   click: async (page: Page, locator: Locator) => {
-    if (!SHOW_CURSOR) {
+    if (!DEBUG_VISUAL) {
       await locator.click();
       return;
     }
@@ -130,7 +130,7 @@ export const cursor = {
    * Fill input with optional cursor animation and human-like typing
    */
   fill: async (page: Page, locator: Locator, value: string) => {
-    if (!SHOW_CURSOR) {
+    if (!DEBUG_VISUAL) {
       await locator.fill(value);
       return;
     }
@@ -147,7 +147,7 @@ export const cursor = {
    * Hover with optional cursor animation
    */
   hover: async (page: Page, locator: Locator) => {
-    if (!SHOW_CURSOR) {
+    if (!DEBUG_VISUAL) {
       await locator.hover();
       return;
     }
@@ -159,7 +159,7 @@ export const cursor = {
 // Test fixture - just handles cursor injection on navigation
 export const test = base.extend<{ page: Page }>({
   page: async ({ page }, use) => {
-    if (SHOW_CURSOR) {
+    if (DEBUG_VISUAL) {
       page.on("load", () => injectCursor(page));
       const origGoto = page.goto.bind(page);
       page.goto = async (url, opts) => {

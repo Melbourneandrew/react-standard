@@ -15,7 +15,7 @@
     "fix:all": "pnpm fix:eslint && pnpm fix:prettier",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:headed:visual": "SHOW_CURSOR=true playwright test --headed --workers=1",
+    "test:headed:visual": "DEBUG_VISUAL=true playwright test --headed --workers=1",
     "test:ui": "playwright test --ui"
   },
   "dependencies": {
