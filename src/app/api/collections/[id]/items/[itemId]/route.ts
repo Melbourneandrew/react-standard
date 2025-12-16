@@ -6,9 +6,7 @@ import {
   deleteMockItem,
 } from "@/app/api/mock-items-store";
 
-type RouteContext = {
-  params: Promise<{ id: string; itemId: string }>;
-};
+type RouteContext = { params: Promise<{ id: string; itemId: string }> };
 
 /**
  * GET /api/collections/[id]/items/[itemId]
@@ -28,7 +26,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     console.error("Error fetching item:", error);
     return NextResponse.json(
       { error: "Failed to fetch item" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -53,7 +51,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     console.error("Error updating item:", error);
     return NextResponse.json(
       { error: "Failed to update item" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -77,7 +75,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     console.error("Error deleting item:", error);
     return NextResponse.json(
       { error: "Failed to delete item" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

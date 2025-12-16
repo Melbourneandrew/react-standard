@@ -47,7 +47,7 @@ type UseItemsQueryReturn = {
 
 export function useItemsQuery(
   searchParams: ItemSearchParams = {},
-  errorHandler?: (error: Error | null) => void
+  errorHandler?: (error: Error | null) => void,
 ): UseItemsQueryReturn {
   const { currentCollectionId } = useCollectionContext();
   const { searchItemsApi } = useItemsApi();

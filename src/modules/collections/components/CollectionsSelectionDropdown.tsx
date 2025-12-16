@@ -27,7 +27,7 @@ export function CollectionsSelectionDropdown() {
     {},
     {
       enabled: isOpen, // Only fetch when dropdown is open
-    }
+    },
   );
 
   const collections = data?.collections || [];

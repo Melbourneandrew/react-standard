@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MOCK_COLLECTIONS } from "@/lib/mock-data";
 
-type RouteContext = {
-  params: Promise<{ id: string }>;
-};
+type RouteContext = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/collections/[id]
@@ -17,7 +15,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (!collection) {
       return NextResponse.json(
         { error: "Collection not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -26,7 +24,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     console.error("Error fetching collection:", error);
     return NextResponse.json(
       { error: "Failed to fetch collection" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

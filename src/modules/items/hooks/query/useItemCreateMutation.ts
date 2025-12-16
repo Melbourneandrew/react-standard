@@ -27,10 +27,7 @@ import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 /**
  * Parameters for creating a new item
  */
-type CreateItemParams = {
-  name: string;
-  description?: string;
-};
+type CreateItemParams = { name: string; description?: string };
 
 type UseItemCreateMutationReturn = {
   // Action (imperative mutation, call with async/await)
@@ -47,7 +44,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { createItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {

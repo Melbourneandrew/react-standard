@@ -21,6 +21,6 @@ export const itemQueryKeys = {
    */
   search: (
     collectionId: string | null | undefined,
-    searchParams?: ItemSearchParams
+    searchParams?: ItemSearchParams,
   ) => ["items", "search", collectionId, searchParams] as const,
 };

@@ -26,7 +26,7 @@ export function useCollectionsApi() {
     async (
       params: ApiRequestParams<NoRouteParams, CollectionSearchParams> = {
         queryParams: {},
-      }
+      },
     ): Promise<CollectionSearchResponse> => {
       const { queryParams = {} } = params;
       const searchParams = new URLSearchParams();
@@ -40,10 +40,10 @@ export function useCollectionsApi() {
       const queryString = searchParams.toString();
       return await callApi<CollectionSearchResponse>(
         "GET",
-        `/api/collections${queryString ? `?${queryString}` : ""}`
+        `/api/collections${queryString ? `?${queryString}` : ""}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -57,11 +57,8 @@ export function useCollectionsApi() {
 
       return await callApi<Collection>("GET", `/api/collections/${id}`);
     },
-    [callApi]
+    [callApi],
   );
 
-  return {
-    searchCollectionsApi,
-    fetchCollectionApi,
-  };
+  return { searchCollectionsApi, fetchCollectionApi };
 }

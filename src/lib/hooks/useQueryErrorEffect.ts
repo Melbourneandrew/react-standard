@@ -13,7 +13,7 @@ import { useEffect } from "react";
 export function useQueryErrorEffect(
   error: Error | null,
   customHandler: ((error: Error | null) => void) | undefined,
-  defaultHandler: (error: Error | null) => void
+  defaultHandler: (error: Error | null) => void,
 ) {
   useEffect(() => {
     const handler = customHandler || defaultHandler;

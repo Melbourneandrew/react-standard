@@ -33,7 +33,7 @@ interface CollectionContextType {
 }
 
 const CollectionContext = createContext<CollectionContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function CollectionProvider({ children }: { children: ReactNode }) {
@@ -58,7 +58,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
       return undefined;
     }
     return collectionsData.collections.find(
-      (c) => c.id === currentCollectionId
+      (c) => c.id === currentCollectionId,
     );
   }, [currentCollectionId, collectionsData]);
 
@@ -91,7 +91,7 @@ export function useCollectionContext() {
   const context = useContext(CollectionContext);
   if (!context) {
     throw new Error(
-      "useCollectionContext must be used within CollectionProvider"
+      "useCollectionContext must be used within CollectionProvider",
     );
   }
   return context;

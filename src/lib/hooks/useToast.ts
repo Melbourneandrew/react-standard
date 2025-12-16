@@ -32,9 +32,5 @@ export function useToast() {
     });
   }, []);
 
-  return {
-    showSuccessToast,
-    showErrorToast,
-    showInfoToast,
-  };
+  return { showSuccessToast, showErrorToast, showInfoToast };
 }

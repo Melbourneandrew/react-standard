@@ -24,9 +24,7 @@ import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 /**
  * Parameters for deleting an item
  */
-type DeleteItemParams = {
-  itemId: string;
-};
+type DeleteItemParams = { itemId: string };
 
 type UseItemDeleteMutationReturn = {
   // Action (imperative mutation, call with async/await)
@@ -44,7 +42,7 @@ export function useItemDeleteMutation(): UseItemDeleteMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { deleteItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {

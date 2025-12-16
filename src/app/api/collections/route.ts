@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       collections = collections.filter(
         (collection) =>
           collection.name.toLowerCase().includes(query) ||
-          collection.description?.toLowerCase().includes(query)
+          collection.description?.toLowerCase().includes(query),
       );
     }
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching collections:", error);
     return NextResponse.json(
       { error: "Failed to fetch collections" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

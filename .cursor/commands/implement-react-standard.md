@@ -1,14 +1,12 @@
 Implement or reimplement features using the hook categories below.
 
 - **API hooks**
-
   - Location `modules/*/hooks/api/<domain>`
   - Name `use<Domain>Api`; methods `<verb><Domain>Api`
   - Pure wrappers around `useApi().callApi` with typed params/responses (`api-types.ts`)
   - No React Query, no shared state, just HTTP helpers
 
 - **Query hooks**
-
   - Location `modules/*/hooks/query/<domain>`
   - Names `use<Domain>sQuery`/`use<Domain>Query`/`use<Domain><Action>Mutation`
   - Must import `<domain>-query-keys` for every query/mutation key
@@ -20,7 +18,6 @@ Implement or reimplement features using the hook categories below.
   - If specifically requested Mutations should use optimistic updates via `useOptimisticMutation`, with `updateCache` + `searchBase` keys for instant UI feedback and automatic rollback.
 
 - **Query keys**
-
   - Every domain owns `<domain>-query-keys.ts` inside `modules/<domain>/hooks/query/`
   - Functions return `as const` tuples so React Query treats them as readonly keys
   - Queries use the full key factory (`itemQueryKeys.search(collectionId, params)`), while mutations use the base factory (`itemQueryKeys.searchBase(collectionId)`) to hit all related queries via partial matching
@@ -55,7 +52,7 @@ export function useItemsApi() {
    */
   const searchItemsApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>
+      params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>,
     ): Promise<ItemSearchResponse> => {
       const { routeParams, queryParams = {} } = params;
       const { collectionId } = routeParams;
@@ -70,12 +67,10 @@ export function useItemsApi() {
       const queryString = searchParams.toString();
       return await callApi<ItemSearchResponse>(
         "GET",
-        `/api/collections/${collectionId}/items${
-          queryString ? `?${queryString}` : ""
-        }`
+        `/api/collections/${collectionId}/items${queryString ? `?${queryString}` : ""}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -84,17 +79,17 @@ export function useItemsApi() {
    */
   const fetchItemApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>
+      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
     ): Promise<Item> => {
       const { routeParams } = params;
       const { collectionId, itemId } = routeParams;
 
       return await callApi<Item>(
         "GET",
-        `/api/collections/${collectionId}/items/${itemId}`
+        `/api/collections/${collectionId}/items/${itemId}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -107,7 +102,7 @@ export function useItemsApi() {
         { collectionId: string; itemId: string },
         NoQueryParams,
         Partial<Item>
-      >
+      >,
     ): Promise<Item> => {
       const { routeParams, bodyParams } = params;
       const { collectionId, itemId } = routeParams;
@@ -115,10 +110,10 @@ export function useItemsApi() {
       return await callApi<Item>(
         "PATCH",
         `/api/collections/${collectionId}/items/${itemId}`,
-        bodyParams
+        bodyParams,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -131,7 +126,7 @@ export function useItemsApi() {
         { collectionId: string },
         NoQueryParams,
         { name: string; description?: string }
-      >
+      >,
     ): Promise<Item> => {
       const { routeParams, bodyParams } = params;
       const { collectionId } = routeParams;
@@ -139,10 +134,10 @@ export function useItemsApi() {
       return await callApi<Item>(
         "POST",
         `/api/collections/${collectionId}/items`,
-        bodyParams
+        bodyParams,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -151,17 +146,17 @@ export function useItemsApi() {
    */
   const deleteItemApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>
+      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
     ): Promise<Item> => {
       const { routeParams } = params;
       const { collectionId, itemId } = routeParams;
 
       return await callApi<Item>(
         "DELETE",
-        `/api/collections/${collectionId}/items/${itemId}`
+        `/api/collections/${collectionId}/items/${itemId}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   return {
@@ -184,7 +179,7 @@ export const itemQueryKeys = {
     ["items", "search", collectionId] as const,
   search: (
     collectionId: string | null | undefined,
-    params?: ItemSearchParams
+    params?: ItemSearchParams,
   ) => ["items", "search", collectionId, params] as const,
 };
 ```
@@ -230,7 +225,7 @@ type UseItemsQueryReturn = {
 
 export function useItemsQuery(
   searchParams: ItemSearchParams = {},
-  errorHandler?: (error: Error | null) => void
+  errorHandler?: (error: Error | null) => void,
 ): UseItemsQueryReturn {
   const { currentCollectionId } = useCollectionContext();
   const { searchItemsApi } = useItemsApi();
@@ -304,7 +299,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { createItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {

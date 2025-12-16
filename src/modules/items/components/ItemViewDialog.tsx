@@ -35,8 +35,8 @@ export function ItemViewDialog({ itemId, onClose }: ItemViewDialogProps) {
             {isLoadingItem
               ? "Loading..."
               : itemError
-              ? "Error"
-              : item?.name || "Item Details"}
+                ? "Error"
+                : item?.name || "Item Details"}
           </DialogTitle>
         </DialogHeader>
 

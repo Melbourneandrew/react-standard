@@ -1,6 +1,5 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -8,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { CollectionsSelectionDropdown } from "@/modules/collections/components/CollectionsSelectionDropdown";
 
 export function WelcomeCard() {

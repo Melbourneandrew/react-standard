@@ -25,14 +25,12 @@ export type NoBodyParams = Record<string, never>;
 export type ApiRequestParams<
   TRouteParams extends Record<string, any> = Record<string, never>,
   TQueryParams extends Record<string, any> = Record<string, never>,
-  TBodyParams extends Record<string, any> = Record<string, never>
+  TBodyParams extends Record<string, any> = Record<string, never>,
 > =
   // If routeParams is not empty, make it required; otherwise optional
   (TRouteParams extends Record<string, never>
     ? { routeParams?: TRouteParams }
-    : {
-        routeParams: TRouteParams;
-      }) & {
+    : { routeParams: TRouteParams }) & {
     // queryParams is always optional (can be omitted even if type is provided)
     queryParams?: TQueryParams;
   } & (TBodyParams extends Record<string, never> // If bodyParams is not empty, make it required; otherwise optional

@@ -40,14 +40,12 @@ export function useApi() {
   const callApi = async <T = any>(
     method: HttpMethod,
     url: string,
-    data?: any
+    data?: any,
   ): Promise<T> => {
     try {
       const options: RequestInit = {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       };
 
       if (data && method !== "GET") {

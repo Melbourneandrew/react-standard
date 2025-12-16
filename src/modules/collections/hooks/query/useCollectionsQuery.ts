@@ -47,11 +47,11 @@ type UseCollectionsQueryReturn = {
 
 export function useCollectionsQuery(
   searchParams: CollectionSearchParams = {},
-  options?: { enabled?: boolean; errorHandler?: (error: Error | null) => void }
+  options?: { enabled?: boolean; errorHandler?: (error: Error | null) => void },
 ): UseCollectionsQueryReturn {
   const { searchCollectionsApi } = useCollectionsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Collections Query Error"
+    "Collections Query Error",
   );
 
   // Declarative query: Runs automatically when params change

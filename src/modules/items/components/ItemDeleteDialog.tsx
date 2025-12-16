@@ -27,19 +27,14 @@ interface ItemDeleteDialogProps {
  * Optimistic Updates: Item is removed from UI immediately. The mutation handles
  * cache invalidation automatically - no manual refetch callbacks needed.
  */
-export function ItemDeleteDialog({
-  item,
-  onClose,
-}: ItemDeleteDialogProps) {
+export function ItemDeleteDialog({ item, onClose }: ItemDeleteDialogProps) {
   const { deleteItemAsync, isDeletingItem } = useItemDeleteMutation();
 
   const handleDelete = async () => {
     if (!item) return;
 
     try {
-      await deleteItemAsync({
-        itemId: item.id,
-      });
+      await deleteItemAsync({ itemId: item.id });
       onClose();
       // ✅ No manual refetch needed - mutation handles cache invalidation
     } catch (err) {
@@ -50,9 +45,7 @@ export function ItemDeleteDialog({
 
   const handleDeleteError = async () => {
     try {
-      await deleteItemAsync({
-        itemId: "error-trigger-item-id",
-      });
+      await deleteItemAsync({ itemId: "error-trigger-item-id" });
     } catch {
       // Expected - handled via default mutation error handler toast
     }

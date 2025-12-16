@@ -173,9 +173,7 @@ function randomElement<T>(array: T[]): T {
  * Generates a random item name using the pattern: [Adjective] [Noun] [Descriptor]
  */
 export function generateName(): string {
-  return `${randomElement(adjectives)} ${randomElement(nouns)} ${randomElement(
-    descriptors
-  )}`;
+  return `${randomElement(adjectives)} ${randomElement(nouns)} ${randomElement(descriptors)}`;
 }
 
 /**
@@ -265,7 +263,7 @@ export function generateMockCollections(count: number = 5) {
  */
 export function generateMockItems(
   count: number = 100,
-  collectionId: string = "coll-1"
+  collectionId: string = "coll-1",
 ) {
   const baseDate = new Date("2024-01-01T10:00:00Z");
 

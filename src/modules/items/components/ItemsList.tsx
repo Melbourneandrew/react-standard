@@ -184,10 +184,7 @@ export default function ItemsList() {
         onClose={() => setEditItem(null)}
       />
 
-      <ItemDeleteDialog
-        item={deleteItem}
-        onClose={() => setDeleteItem(null)}
-      />
+      <ItemDeleteDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
 
       <ItemCreationDialog
         open={isCreateDialogOpen}
