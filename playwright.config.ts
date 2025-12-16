@@ -5,6 +5,7 @@ const recordVideo = process.env.RECORD_VIDEO === "true";
 
 export default defineConfig({
   testDir: "./playwright/tests",
+  outputDir: "./playwright/test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // Retries help with flakiness from parallel data mutations

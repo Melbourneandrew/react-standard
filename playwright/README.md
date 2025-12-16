@@ -23,12 +23,25 @@ playwright/
 │   ├── collections.spec.ts
 │   ├── item-create.spec.ts
 │   └── ...
+├── artifacts/          # Generated - screen recordings (gitignored)
+├── test-results/       # Generated - Playwright traces/artifacts (gitignored)
 ├── fixtures.ts         # Test infrastructure (cursor animations, etc.)
 ├── test-context.md     # Generation context: patterns, quirks, timing
 ├── selectors.json      # Structured selector mappings
 ├── record-tests.sh     # Screen recording script (macOS only)
+├── .gitignore          # Ignores artifacts/ and test-results/
 └── README.md           # This file
 ```
+
+### Generated Directories (gitignored)
+
+**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mp4`). Safe to delete anytime.
+
+**`test-results/`** — Playwright's output directory for test artifacts:
+- **Traces**: When a test fails and retries, Playwright saves a trace file here. Open with `npx playwright show-trace <path-to-trace.zip>` to see a timeline of what happened.
+- **Screenshots/Videos**: If configured, Playwright can save per-test screenshots or videos here.
+
+Both directories are gitignored and can be safely deleted. They regenerate automatically when you run tests.
 
 ## Features (`features/`)
 
@@ -123,15 +136,22 @@ pnpm test:headed
 # Run tests with visual debugging (cursor animations)
 pnpm test:headed:visual
 
-# Open Playwright UI for interactive debugging
-pnpm test:ui
-
 # Record first test to video (macOS only)
 pnpm test:record:first
 
 # Record all tests to video (macOS only)
 pnpm test:record
 ```
+
+### What each command does
+
+| Command | Browser | Cursor Animation | Video Recording |
+|---------|---------|------------------|-----------------|
+| `pnpm test` | Headless | No | No |
+| `pnpm test:headed` | Visible | No | No |
+| `pnpm test:headed:visual` | Visible | Yes | No |
+| `pnpm test:record:first` | Visible | Yes | Yes (first test file) |
+| `pnpm test:record` | Visible | Yes | Yes (all tests) |
 
 ## Visual Debugging
 
@@ -157,7 +177,7 @@ Videos are saved to `playwright/artifacts/<timestamp>/video.mp4`.
 4. Regenerate the test
 
 ### Selector not found
-1. Use Playwright's inspector: `pnpm test:ui`
-2. Find the correct selector
-3. Update `selectors.json`
+1. Run `pnpm test:headed:visual` to observe the test
+2. Use browser DevTools to inspect elements
+3. Update `selectors.json` with the correct selector
 4. Regenerate affected tests
