@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const showCursor = process.env.SHOW_CURSOR === "true";
+
 export default defineConfig({
   testDir: "./playwright/tests",
   fullyParallel: true,
@@ -10,6 +12,10 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
+    // Slow down operations when showing cursor
+    ...(showCursor && {
+      launchOptions: { slowMo: 50 },
+    }),
   },
   projects: [
     {
