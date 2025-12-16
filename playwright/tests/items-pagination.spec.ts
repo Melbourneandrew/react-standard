@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Items Pagination", () => {
   test.beforeEach(async ({ page }) => {
@@ -74,5 +74,49 @@ test.describe("Items Pagination", () => {
     await expect(
       page.getByRole("button", { name: "Next", exact: true }),
     ).toBeDisabled();
+  });
+
+});
+
+// Separate describe block for tests that need custom route setup
+test.describe("Items Pagination - Edge Cases", () => {
+  test("should not show pagination controls for small collections", async ({
+    page,
+  }) => {
+    // Set up route interception BEFORE navigating
+    await page.route("**/api/collections/*/items*", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          items: [
+            {
+              id: "item-single",
+              name: "Single Item",
+              description: "Only one item",
+              collection_id: "coll-1",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ],
+          total_count: 1,
+          page: 1,
+          page_size: 10,
+          total_pages: 1,
+        }),
+      });
+    });
+
+    // Navigate AFTER setting up the route
+    await page.goto("/collections/coll-1");
+
+    // Wait for the mocked item to appear
+    await expect(page.getByText("Single Item")).toBeVisible({ timeout: 10000 });
+
+    // Pagination controls should not be visible (only 1 page)
+    await expect(page.getByRole("button", { name: "Previous" })).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Next", exact: true }),
+    ).not.toBeVisible();
   });
 });

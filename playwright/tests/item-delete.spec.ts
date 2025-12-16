@@ -1,0 +1,81 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("Item Delete", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/collections/coll-1");
+    // Wait for items to load
+    await expect(page.locator(".animate-spin")).not.toBeVisible({
+      timeout: 10000,
+    });
+  });
+
+  test("should open delete confirmation dialog", async ({ page }) => {
+    // Find first item's delete button (trash icon)
+    const firstItem = page.locator(".rounded-lg.border").first();
+    const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+    await deleteButton.click();
+
+    // Confirmation dialog should open
+    await expect(page.getByRole("dialog")).toBeVisible();
+  });
+
+  test("should show item name in delete confirmation", async ({ page }) => {
+    // Get first item's name
+    const firstItem = page.locator(".rounded-lg.border").first();
+    const itemName = await firstItem.locator("h3").textContent();
+
+    // Click delete
+    const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+    await deleteButton.click();
+
+    // Dialog should mention the item
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(
+      page.getByRole("dialog").getByText(itemName!, { exact: false }),
+    ).toBeVisible();
+  });
+
+  test("should delete item when confirmed", async ({ page }) => {
+    // Get first item's name
+    const firstItem = page.locator(".rounded-lg.border").first();
+    const itemName = await firstItem.locator("h3").textContent();
+
+    // Click delete
+    const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+    await deleteButton.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    // Confirm deletion
+    await page.getByRole("button", { name: /delete/i }).click();
+
+    // Dialog should close
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
+    // Item should no longer be visible (search for it)
+    await page.getByPlaceholder("Search...").fill(itemName!);
+    await expect(page).toHaveURL(/query=/, { timeout: 5000 });
+
+    // Wait a bit for the list to update
+    await page.waitForTimeout(500);
+  });
+
+  test("should cancel deletion", async ({ page }) => {
+    // Get first item's name
+    const firstItem = page.locator(".rounded-lg.border").first();
+    const itemName = await firstItem.locator("h3").textContent();
+
+    // Click delete
+    const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+    await deleteButton.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    // Cancel
+    await page.getByRole("button", { name: /cancel/i }).click();
+
+    // Dialog should close
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
+    // Item should still be there
+    await expect(firstItem.locator("h3")).toHaveText(itemName!);
+  });
+});
