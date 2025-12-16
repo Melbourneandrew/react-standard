@@ -33,6 +33,12 @@ playwright/
 └── README.md           # This file
 ```
 
+**Note:** The main Playwright configuration lives at `playwright.config.ts` in the project root. It defines:
+- Test directory location (`./playwright/tests`)
+- Output directory (`./playwright/test-results`)
+- Browser settings, timeouts, and retry behavior
+- Debug mode settings (`DEBUG_VISUAL`, `RECORD_VIDEO` env vars)
+
 ### Generated Directories (gitignored)
 
 **`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mp4`). Safe to delete anytime.

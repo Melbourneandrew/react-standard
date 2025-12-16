@@ -2,7 +2,7 @@
 # Record Playwright tests with screen capture
 # Usage: ./playwright/record-tests.sh [test-filter]
 #
-# NOTE: This script is macOS-specific (uses ffmpeg with avfoundation).
+# NOTE: This script is macOS-specific (uses screencapture).
 # It will not work on Linux/Windows. For CI, use Playwright's built-in
 # video recording via RECORD_VIDEO=true in playwright.config.ts instead.
 
@@ -10,7 +10,7 @@ set -e
 
 DIR="playwright/artifacts/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$DIR"
-VIDEO="$DIR/video.mp4"
+VIDEO="$DIR/video.mov"
 
 # Get test filter (defaults to first test file, use --all for all tests)
 if [ "$1" = "--all" ]; then
@@ -36,17 +36,16 @@ else
   PW_CMD="DEBUG_VISUAL=true pnpm exec playwright test --headed --workers=1"
 fi
 
-# Use script command to provide a TTY for ffmpeg
-# Records at 60fps for smooth playback
+# Use script command to provide a TTY for screencapture
 script -q /dev/null bash -c "
-  ffmpeg -f avfoundation -framerate 60 -i 2 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \"$VIDEO\" -y </dev/null >/dev/null 2>&1 &
-  FFPID=\$!
+  screencapture -v \"$VIDEO\" &
+  SCPID=\$!
   sleep 2
   $PW_CMD
   EXIT_CODE=\$?
   sleep 1
-  kill -INT \$FFPID 2>/dev/null || true
-  sleep 2
+  kill -INT \$SCPID 2>/dev/null || true
+  wait \$SCPID 2>/dev/null || true
   exit \$EXIT_CODE
 "
 
