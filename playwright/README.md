@@ -40,7 +40,7 @@ playwright/
 
 ### Generated Directories (gitignored)
 
-**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mov`). Safe to delete anytime.
+**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mp4`). Safe to delete anytime.
 
 **`test-results/`** — Playwright's output directory for test artifacts:
 - **Traces**: When a test fails and retries, Playwright saves a trace file here. Open with `npx playwright show-trace <path-to-trace.zip>` to see a timeline of what happened.
@@ -120,7 +120,27 @@ Test infrastructure code:
 
 ### `macos-record.sh`
 
-Screen recording script for macOS only. Uses `screencapture` to record the screen while tests run. Not available on Linux/Windows.
+Screen recording script for macOS only. Not available on Linux/Windows.
+
+**Two recording backends are available:**
+
+| Backend | Format | FPS | Pros | Cons |
+|---------|--------|-----|------|------|
+| `ffmpeg` (default) | `.mp4` | 60fps | Smooth video, good for demos | Requires Homebrew ffmpeg, can hang on permission issues |
+| `screencapture` | `.mov` | ~10fps | Always works, no dependencies | Lower frame rate, choppy playback |
+
+The script uses **ffmpeg by default**. If ffmpeg hangs (permission issues on macOS 15+), you can switch to screencapture by editing the script or running:
+
+```bash
+# Fallback: use native screencapture (lower fps but always works)
+screencapture -v playwright/artifacts/video.mov &
+SCPID=$!
+sleep 2
+DEBUG_VISUAL=true pnpm test:headed:visual
+kill -INT $SCPID
+```
+
+**Troubleshooting ffmpeg hangs:** If ffmpeg hangs without recording, it's usually a TCC permission issue. Reset screen recording permissions for Cursor/Terminal in System Settings > Privacy & Security > Screen & System Audio Recording, then restart the app.
 
 ## Running Tests
 
@@ -163,7 +183,7 @@ When running with `DEBUG_VISUAL=true`:
 - Human-like typing in input fields
 - Slower execution for observation
 
-Videos are saved to `playwright/artifacts/<timestamp>/video.mov`.
+Videos are saved to `playwright/artifacts/<timestamp>/video.mp4` at 60fps.
 
 ## Troubleshooting
 
