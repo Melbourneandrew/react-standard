@@ -8,7 +8,7 @@ This directory contains the end-to-end testing infrastructure. Tests are **gener
 
 If a test is broken but the feature should work:
 1. Check if the app behavior changed → update the feature file
-2. Check if there's a timing/selector quirk → document it in `test-context.md`
+2. Check if there's a timing/selector quirk → document it in `context.md`
 3. Regenerate the test
 
 ## Directory Structure
@@ -25,10 +25,9 @@ playwright/
 │   └── ...
 ├── artifacts/          # Generated - screen recordings (gitignored)
 ├── test-results/       # Generated - Playwright traces/artifacts (gitignored)
-├── fixtures.ts         # Test infrastructure (cursor animations, etc.)
-├── test-context.md     # Generation context: patterns, quirks, timing
-├── selectors.json      # Structured selector mappings
-├── record-tests.sh     # Screen recording script (macOS only)
+├── context.md          # AI generation context: patterns, quirks, timing
+├── fixtures.ts         # Test infrastructure (cursor animations)
+├── macos-record.sh     # Screen recording script (macOS only)
 ├── .gitignore          # Ignores artifacts/ and test-results/
 └── README.md           # This file
 ```
@@ -41,7 +40,7 @@ playwright/
 
 ### Generated Directories (gitignored)
 
-**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mp4`). Safe to delete anytime.
+**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mov`). Safe to delete anytime.
 
 **`test-results/`** — Playwright's output directory for test artifacts:
 - **Traces**: When a test fails and retries, Playwright saves a trace file here. Open with `npx playwright show-trace <path-to-trace.zip>` to see a timeline of what happened.
@@ -89,37 +88,26 @@ Generated `.spec.ts` files that implement the feature scenarios. **Do not manual
 To regenerate tests from features:
 
 1. Delete the test file(s) you want to regenerate
-2. Use the feature file + context files to generate new tests
+2. Use the feature file + `context.md` to generate new tests
 3. Run `pnpm test` to verify
 
 The combination of:
 - Feature file (what to test)
-- `test-context.md` (how to test, quirks)
-- `selectors.json` (element selectors)
+- `context.md` (how to test, quirks, selectors)
 
 ...should be sufficient to regenerate any test file.
 
 ## Context Files
 
-### `test-context.md`
+### `context.md`
 
-Human-readable documentation for test generation:
+Human-readable documentation for AI-assisted test generation:
 - Import patterns and test setup
 - Selector strategies and why they're used
 - Known quirks (timing issues, browser behavior)
 - Timing recommendations for waits
 
 **When to update:** Add quirks here when you discover timing issues, selector changes, or browser-specific behavior that affects test reliability.
-
-### `selectors.json`
-
-Structured JSON mapping of UI elements to selectors:
-- Button selectors
-- Dialog selectors
-- Form field selectors
-- API endpoint patterns
-
-**When to update:** When UI elements change their structure, roles, or identifiers.
 
 ### `fixtures.ts`
 
@@ -129,6 +117,10 @@ Test infrastructure code:
 - Test extensions and setup
 
 **When to update:** When adding new interaction patterns or debugging capabilities.
+
+### `macos-record.sh`
+
+Screen recording script for macOS only. Uses `screencapture` to record the screen while tests run. Not available on Linux/Windows.
 
 ## Running Tests
 
@@ -167,23 +159,23 @@ When running with `DEBUG_VISUAL=true`:
 - Human-like typing in input fields
 - Slower execution for observation
 
-Videos are saved to `playwright/artifacts/<timestamp>/video.mp4`.
+Videos are saved to `playwright/artifacts/<timestamp>/video.mov`.
 
 ## Troubleshooting
 
 ### Test is flaky
-1. Check `test-context.md` for known timing issues
+1. Check `context.md` for known timing issues
 2. Add appropriate waits (`networkidle`, `waitForResponse`)
-3. Document the fix in `test-context.md` for future regeneration
+3. Document the fix in `context.md` for future regeneration
 
 ### Test fails but feature should work
 1. Run with `pnpm test:headed:visual` to observe
-2. Check if selectors changed → update `selectors.json`
+2. Check if selectors changed → update `context.md`
 3. Check if behavior changed → update feature file
 4. Regenerate the test
 
 ### Selector not found
 1. Run `pnpm test:headed:visual` to observe the test
 2. Use browser DevTools to inspect elements
-3. Update `selectors.json` with the correct selector
+3. Update `context.md` with the correct selector
 4. Regenerate affected tests

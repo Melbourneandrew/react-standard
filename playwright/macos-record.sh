@@ -1,6 +1,6 @@
 #!/bin/bash
 # Record Playwright tests with screen capture
-# Usage: ./playwright/record-tests.sh [test-filter]
+# Usage: ./playwright/macos-record.sh [test-filter]
 #
 # NOTE: This script is macOS-specific (uses screencapture).
 # It will not work on Linux/Windows. For CI, use Playwright's built-in

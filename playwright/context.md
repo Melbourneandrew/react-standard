@@ -2,14 +2,15 @@
 
 This document provides context for generating and maintaining Playwright tests from the Gherkin feature files.
 
+**AI Model:** This context is optimized for Claude Opus 4.5 with max mode enabled.
+
 ## Test Generation Overview
 
 Tests are driven entirely by Gherkin feature files. Each feature file defines user stories that map directly to test scenarios. To regenerate tests:
 
 1. Read the feature file in `features/`
 2. Reference this context file for selectors, patterns, and quirks
-3. Reference `selectors.json` for structured selector data
-4. Generate the corresponding `.spec.ts` file in `tests/`
+3. Generate the corresponding `.spec.ts` file in `tests/`
 
 ## Test Framework Setup
 
@@ -23,10 +24,10 @@ import { test, expect, cursor } from "../fixtures";
 
 ### Cursor API (Explicit Opt-In)
 
-Tests use explicit `cursor.*` functions for user interactions. When `SHOW_CURSOR=true`, these animate the cursor; when disabled, they just perform the action directly.
+Tests use explicit `cursor.*` functions for user interactions. When `DEBUG_VISUAL=true`, these animate the cursor; when disabled, they just perform the action directly.
 
 ```typescript
-// Click with cursor animation (when SHOW_CURSOR=true)
+// Click with cursor animation (when DEBUG_VISUAL=true)
 await cursor.click(page, locator);
 
 // Fill with cursor animation + human-like typing
@@ -40,7 +41,7 @@ await cursor.hover(page, locator);
 
 ### Debug Mode Features
 
-When running `pnpm test:debug` (SHOW_CURSOR=true):
+When running `pnpm test:headed:visual` (DEBUG_VISUAL=true):
 
 - Animated SVG cursor with arc movement
 - Click ripple effects + cursor bounce on click
@@ -53,8 +54,9 @@ When running `pnpm test:debug` (SHOW_CURSOR=true):
 | ------ | ------- | ----------- |
 | `pnpm test` | `playwright test` | Run all tests headless |
 | `pnpm test:headed` | `playwright test --headed` | Run with browser visible |
-| `pnpm test:debug` | `SHOW_CURSOR=true playwright test --headed --workers=1` | Debug mode with animated cursor |
-| `pnpm test:report` | `playwright show-report` | View HTML test report |
+| `pnpm test:headed:visual` | `DEBUG_VISUAL=true playwright test --headed --workers=1` | Debug mode with animated cursor |
+| `pnpm test:record:first` | `./playwright/macos-record.sh` | Record first test to video (macOS) |
+| `pnpm test:record` | `./playwright/macos-record.sh --all` | Record all tests to video (macOS) |
 
 ## Test Structure Conventions
 

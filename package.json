@@ -16,8 +16,8 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:headed:visual": "DEBUG_VISUAL=true playwright test --headed --workers=1",
-    "test:record:first": "./playwright/record-tests.sh",
-    "test:record": "./playwright/record-tests.sh --all"
+    "test:record:first": "./playwright/macos-record.sh",
+    "test:record": "./playwright/macos-record.sh --all"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
