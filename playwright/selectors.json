@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Playwright selector mappings for test generation",
+
+  "routes": {
+    "home": "/",
+    "collection": "/collections/:id"
+  },
+
+  "urlParams": {
+    "searchQuery": "query",
+    "page": "page"
+  },
+
+  "mockData": {
+    "collectionIds": ["coll-1", "coll-2", "coll-3", "coll-4", "coll-5"],
+    "itemsPerCollection": 100,
+    "itemsPerPage": 10
+  },
+
+  "elements": {
+    "collectionDropdown": {
+      "role": "combobox",
+      "description": "Radix Select trigger for collection selection"
+    },
+    "collectionOptions": {
+      "role": "listbox",
+      "childRole": "option",
+      "description": "Collection dropdown options"
+    },
+    "searchInput": {
+      "placeholder": "Search...",
+      "debounceMs": 300
+    },
+    "loadingSpinner": {
+      "selector": ".animate-spin"
+    },
+    "itemCard": {
+      "selector": ".rounded-lg.border"
+    },
+    "itemName": {
+      "selector": "h3",
+      "parent": "itemCard"
+    },
+    "emptyState": {
+      "text": "No items found"
+    },
+    "pageInfo": {
+      "pattern": "/Page \\d+ of \\d+/"
+    }
+  },
+
+  "buttons": {
+    "createItem": {
+      "selector": "button:has(svg.lucide-plus)",
+      "description": "Plus icon button next to search"
+    },
+    "viewItem": {
+      "selector": "button:has(svg.lucide-eye)",
+      "parent": "itemCard",
+      "description": "Eye icon - view item details"
+    },
+    "editItem": {
+      "selector": "button:has(svg.lucide-pencil)",
+      "parent": "itemCard",
+      "description": "Pencil icon - edit item"
+    },
+    "deleteItem": {
+      "selector": "button:has(svg.lucide-trash-2)",
+      "parent": "itemCard",
+      "description": "Trash icon - delete item"
+    },
+    "previousPage": {
+      "role": "button",
+      "name": "Previous"
+    },
+    "nextPage": {
+      "role": "button",
+      "name": "Next",
+      "exact": true,
+      "note": "Must use exact:true due to Next.js dev tools button conflict"
+    }
+  },
+
+  "dialogs": {
+    "role": "dialog",
+    "closeMethods": ["cancelButton", "escapeKey", "clickOutside"],
+    "formFields": {
+      "name": {
+        "label": "Name",
+        "required": true
+      },
+      "description": {
+        "label": "Description",
+        "required": false
+      }
+    },
+    "actions": {
+      "create": {
+        "pattern": "/create/i"
+      },
+      "save": {
+        "pattern": "/save/i"
+      },
+      "delete": {
+        "pattern": "/delete/i"
+      },
+      "cancel": {
+        "pattern": "/cancel/i"
+      }
+    }
+  },
+
+  "quirks": {
+    "nextButtonConflict": {
+      "issue": "Next.js dev tools button has 'Next' in accessible name",
+      "solution": "Use { exact: true } for pagination Next button",
+      "affectedSelector": "nextPage"
+    }
+  },
+
+  "timeouts": {
+    "itemsLoading": 10000,
+    "collectionDropdown": 10000,
+    "searchUrlUpdate": 5000,
+    "dialogClose": 10000,
+    "searchResults": 10000,
+    "default": 5000
+  },
+
+  "notes": {
+    "multipleComboboxes": "Home page has TWO comboboxes (navbar + welcome card). Use .first() or .nth(1) to disambiguate.",
+    "mutationTiming": "After mutations (create/update/delete), wait for cache invalidation before asserting on updated data.",
+    "invalidCollectionId": "Invalid collection IDs still render the items page (with empty/error state), not a dedicated 'not found' page."
+  }
+}

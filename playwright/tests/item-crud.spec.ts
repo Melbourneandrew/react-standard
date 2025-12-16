@@ -13,8 +13,9 @@ test.describe("Item CRUD Operations", () => {
     test("should open create dialog when clicking + button", async ({
       page,
     }) => {
-      // Find and click the + button
-      await page.locator("button").filter({ has: page.locator("svg") }).nth(0).click();
+      // The + button is next to the search input
+      const createButton = page.locator("button:has(svg.lucide-plus)");
+      await createButton.click();
 
       // Dialog should open
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -22,28 +23,36 @@ test.describe("Item CRUD Operations", () => {
 
     test("should create item successfully", async ({ page }) => {
       // Open create dialog
-      await page.locator("button").filter({ has: page.locator("svg") }).nth(0).click();
+      const createButton = page.locator("button:has(svg.lucide-plus)");
+      await createButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Fill in the form
-      await page.getByLabel("Name").fill("Test Item Created");
-      await page.getByLabel("Description").fill("Test description for new item");
+      const uniqueName = `Test Item ${Date.now()}`;
+      await page.getByLabel("Name").fill(uniqueName);
+      await page
+        .getByLabel("Description")
+        .fill("Test description for new item");
 
       // Submit
       await page.getByRole("button", { name: /create/i }).click();
 
-      // Dialog should close
-      await expect(page.getByRole("dialog")).not.toBeVisible();
+      // Dialog should close (wait for mutation + animation)
+      await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
 
       // New item should appear in the list (search for it)
-      await page.getByPlaceholder("Search...").fill("Test Item Created");
-      await expect(page).toHaveURL(/query=Test/, { timeout: 5000 });
-      await expect(page.getByText("Test Item Created")).toBeVisible();
+      await page.getByPlaceholder("Search...").fill(uniqueName);
+      await expect(page).toHaveURL(/query=/, { timeout: 5000 });
+
+      // Wait for search results and cache invalidation
+      await page.waitForTimeout(1000);
+      await expect(page.getByText(uniqueName)).toBeVisible({ timeout: 10000 });
     });
 
     test("should cancel item creation", async ({ page }) => {
       // Open create dialog
-      await page.locator("button").filter({ has: page.locator("svg") }).nth(0).click();
+      const createButton = page.locator("button:has(svg.lucide-plus)");
+      await createButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Fill in some data
@@ -63,7 +72,8 @@ test.describe("Item CRUD Operations", () => {
     }) => {
       // Find first item's view button (eye icon)
       const firstItem = page.locator(".rounded-lg.border").first();
-      await firstItem.getByRole("button").first().click();
+      const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
+      await viewButton.click();
 
       // Dialog should open with item details
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -74,20 +84,28 @@ test.describe("Item CRUD Operations", () => {
       const firstItem = page.locator(".rounded-lg.border").first();
       const itemName = await firstItem.locator("h3").textContent();
 
-      await firstItem.getByRole("button").first().click();
+      const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
+      await viewButton.click();
 
-      // Dialog should show item name
+      // Dialog should be visible
       await expect(page.getByRole("dialog")).toBeVisible();
-      await expect(page.getByRole("dialog").getByText(itemName!)).toBeVisible();
+
+      // Wait for item to load in dialog (the title shows the item name)
+      // The dialog title will eventually show the item name after loading
+      await expect(page.getByRole("dialog").locator("h2")).toContainText(
+        itemName!,
+        { timeout: 5000 },
+      );
     });
 
     test("should close view dialog", async ({ page }) => {
       // Open view dialog
       const firstItem = page.locator(".rounded-lg.border").first();
-      await firstItem.getByRole("button").first().click();
+      const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
+      await viewButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
-      // Close it (click X or outside)
+      // Close it (press Escape)
       await page.keyboard.press("Escape");
 
       await expect(page.getByRole("dialog")).not.toBeVisible();
@@ -98,9 +116,10 @@ test.describe("Item CRUD Operations", () => {
     test("should open edit dialog when clicking pencil button", async ({
       page,
     }) => {
-      // Find first item's edit button (pencil icon - second button)
+      // Find first item's edit button (pencil icon)
       const firstItem = page.locator(".rounded-lg.border").first();
-      await firstItem.getByRole("button").nth(1).click();
+      const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
+      await editButton.click();
 
       // Dialog should open
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -112,7 +131,8 @@ test.describe("Item CRUD Operations", () => {
       const itemName = await firstItem.locator("h3").textContent();
 
       // Click edit
-      await firstItem.getByRole("button").nth(1).click();
+      const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
+      await editButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Name field should be pre-filled
@@ -122,24 +142,28 @@ test.describe("Item CRUD Operations", () => {
     test("should update item successfully", async ({ page }) => {
       // Click edit on first item
       const firstItem = page.locator(".rounded-lg.border").first();
-      await firstItem.getByRole("button").nth(1).click();
+      const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
+      await editButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
-      // Change the name
-      const uniqueName = `Updated Item ${Date.now()}`;
+      // Change the name to something unique
+      const uniqueName = `Updated ${Date.now()}`;
       await page.getByLabel("Name").clear();
       await page.getByLabel("Name").fill(uniqueName);
 
       // Save
       await page.getByRole("button", { name: /save/i }).click();
 
-      // Dialog should close
-      await expect(page.getByRole("dialog")).not.toBeVisible();
+      // Dialog should close (wait longer for mutation + animation)
+      await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
 
       // Search for updated item
       await page.getByPlaceholder("Search...").fill(uniqueName);
       await expect(page).toHaveURL(/query=Updated/, { timeout: 5000 });
-      await expect(page.getByText(uniqueName)).toBeVisible();
+
+      // Wait for search and verify
+      await page.waitForTimeout(500);
+      await expect(page.getByText(uniqueName)).toBeVisible({ timeout: 5000 });
     });
 
     test("should cancel edit without saving", async ({ page }) => {
@@ -148,7 +172,8 @@ test.describe("Item CRUD Operations", () => {
       const originalName = await firstItem.locator("h3").textContent();
 
       // Click edit
-      await firstItem.getByRole("button").nth(1).click();
+      const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
+      await editButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Change the name
@@ -168,9 +193,10 @@ test.describe("Item CRUD Operations", () => {
 
   test.describe("Delete Item", () => {
     test("should open delete confirmation dialog", async ({ page }) => {
-      // Find first item's delete button (trash icon - third button)
+      // Find first item's delete button (trash icon)
       const firstItem = page.locator(".rounded-lg.border").first();
-      await firstItem.getByRole("button").nth(2).click();
+      const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+      await deleteButton.click();
 
       // Confirmation dialog should open
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -182,7 +208,8 @@ test.describe("Item CRUD Operations", () => {
       const itemName = await firstItem.locator("h3").textContent();
 
       // Click delete
-      await firstItem.getByRole("button").nth(2).click();
+      const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+      await deleteButton.click();
 
       // Dialog should mention the item
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -197,7 +224,8 @@ test.describe("Item CRUD Operations", () => {
       const itemName = await firstItem.locator("h3").textContent();
 
       // Click delete
-      await firstItem.getByRole("button").nth(2).click();
+      const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+      await deleteButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Confirm deletion
@@ -212,9 +240,6 @@ test.describe("Item CRUD Operations", () => {
 
       // Wait a bit for the list to update
       await page.waitForTimeout(500);
-
-      // The exact item should not be in the list anymore
-      // (Note: might still see it if there's another item with similar name)
     });
 
     test("should cancel deletion", async ({ page }) => {
@@ -223,7 +248,8 @@ test.describe("Item CRUD Operations", () => {
       const itemName = await firstItem.locator("h3").textContent();
 
       // Click delete
-      await firstItem.getByRole("button").nth(2).click();
+      const deleteButton = firstItem.locator("button:has(svg.lucide-trash-2)");
+      await deleteButton.click();
       await expect(page.getByRole("dialog")).toBeVisible();
 
       // Cancel

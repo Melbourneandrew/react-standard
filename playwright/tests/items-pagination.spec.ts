@@ -13,8 +13,13 @@ test.describe("Items Pagination", () => {
     page,
   }) => {
     // Collection has 100 items, so pagination should be visible
-    await expect(page.getByRole("button", { name: "Previous" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Next" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Previous" }),
+    ).toBeVisible();
+    // Use exact: true to avoid matching Next.js dev tools button
+    await expect(
+      page.getByRole("button", { name: "Next", exact: true }),
+    ).toBeVisible();
 
     // Should show page info
     await expect(page.getByText(/Page \d+ of \d+/)).toBeVisible();
@@ -27,7 +32,8 @@ test.describe("Items Pagination", () => {
   });
 
   test("should navigate to next page", async ({ page }) => {
-    const nextButton = page.getByRole("button", { name: "Next" });
+    // Use exact: true to avoid matching Next.js dev tools button
+    const nextButton = page.getByRole("button", { name: "Next", exact: true });
 
     // Click next
     await nextButton.click();
@@ -41,7 +47,7 @@ test.describe("Items Pagination", () => {
 
   test("should navigate back to previous page", async ({ page }) => {
     // Go to page 2 first
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
 
     // Click previous
@@ -60,11 +66,13 @@ test.describe("Items Pagination", () => {
 
     // Navigate to last page
     for (let i = 1; i < totalPages; i++) {
-      await page.getByRole("button", { name: "Next" }).click();
+      await page.getByRole("button", { name: "Next", exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`page=${i + 1}`));
     }
 
     // Next button should be disabled
-    await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Next", exact: true }),
+    ).toBeDisabled();
   });
 });

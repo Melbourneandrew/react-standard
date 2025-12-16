@@ -12,8 +12,9 @@ test.describe("Collection Selection", () => {
       page.getByText("Please select a collection from the dropdown"),
     ).toBeVisible();
 
-    // Should see collection dropdown
-    await expect(page.getByRole("combobox")).toBeVisible();
+    // Should see collection dropdowns (one in navbar, one in card)
+    // Just verify at least one exists
+    await expect(page.getByRole("combobox").first()).toBeVisible();
   });
 
   test("should show list of available collections when dropdown is clicked", async ({
@@ -21,12 +22,12 @@ test.describe("Collection Selection", () => {
   }) => {
     await page.goto("/");
 
-    // Click the dropdown
-    await page.getByRole("combobox").click();
+    // Click the card's dropdown (second combobox, the one in the welcome card)
+    const cardDropdown = page.getByRole("combobox").nth(1);
+    await cardDropdown.click();
 
-    // Should see collection options (collections have random names from the word bank)
-    // We just verify the listbox appears with options
-    await expect(page.getByRole("listbox")).toBeVisible();
+    // Wait for collections to load and listbox to appear
+    await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole("option").first()).toBeVisible();
   });
 
@@ -35,8 +36,12 @@ test.describe("Collection Selection", () => {
   }) => {
     await page.goto("/");
 
-    // Click the dropdown
-    await page.getByRole("combobox").click();
+    // Click the card's dropdown
+    const cardDropdown = page.getByRole("combobox").nth(1);
+    await cardDropdown.click();
+
+    // Wait for options to load
+    await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select the first collection
     await page.getByRole("option").first().click();
@@ -48,18 +53,24 @@ test.describe("Collection Selection", () => {
     await expect(page.getByText("Items")).toBeVisible();
   });
 
-  test("should be able to switch between collections from navbar", async ({
-    page,
-  }) => {
+  test("should be able to switch between collections", async ({ page }) => {
     // Start on a collection page
     await page.goto("/collections/coll-1");
 
-    // Wait for items to load
+    // Wait for page to load
     await expect(page.getByText("Items")).toBeVisible();
 
-    // Find and click the navbar dropdown
-    const navbarDropdown = page.locator("header").getByRole("combobox");
-    await navbarDropdown.click();
+    // Wait for items to load
+    await expect(page.locator(".animate-spin")).not.toBeVisible({
+      timeout: 10000,
+    });
+
+    // Find and click the navbar dropdown (first combobox)
+    const navDropdown = page.getByRole("combobox").first();
+    await navDropdown.click();
+
+    // Wait for options to load
+    await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select a different collection (second option)
     await page.getByRole("option").nth(1).click();
