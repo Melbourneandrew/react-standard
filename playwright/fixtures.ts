@@ -88,16 +88,8 @@ async function animateClick(page: Page) {
   } catch {}
 }
 
-async function typeHuman(page: Page, text: string) {
-  if (!SHOW_CURSOR) {
-    await page.keyboard.type(text);
-    return;
-  }
-  for (const char of text) {
-    await page.keyboard.type(char, { delay: 0 });
-    await page.waitForTimeout(5 + Math.floor(Math.random() * 6)); // 5-10ms
-  }
-}
+// Use Playwright's built-in delay - much more efficient than manual loops
+const TYPE_DELAY = 10; // ms per character when SHOW_CURSOR is on
 
 /**
  * Cursor interaction helpers.
@@ -123,7 +115,6 @@ export const cursor = {
    */
   fill: async (page: Page, locator: Locator, value: string) => {
     if (!SHOW_CURSOR) {
-      // Fast path: just use native fill
       await locator.fill(value);
       return;
     }
@@ -132,7 +123,8 @@ export const cursor = {
     await locator.click();
     await page.keyboard.press("Meta+A");
     await page.keyboard.press("Backspace");
-    await typeHuman(page, value);
+    // Use Playwright's built-in delay - no loop overhead
+    await locator.pressSequentially(value, { delay: TYPE_DELAY });
   },
 
   /**
