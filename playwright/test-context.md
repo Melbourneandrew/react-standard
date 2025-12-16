@@ -2,6 +2,46 @@
 
 This document provides context for generating and maintaining Playwright tests from the Gherkin feature files.
 
+## Test Generation Overview
+
+Tests are driven entirely by Gherkin feature files. Each feature file defines user stories that map directly to test scenarios. To regenerate tests:
+
+1. Read the feature file in `features/`
+2. Reference this context file for selectors, patterns, and quirks
+3. Reference `selectors.json` for structured selector data
+4. Generate the corresponding `.spec.ts` file in `tests/`
+
+## Test Framework Setup
+
+### Imports
+
+Tests **must** import from the local fixtures file, not from `@playwright/test`:
+
+```typescript
+import { test, expect } from "../fixtures";
+```
+
+This enables the cursor visualization system for debug mode. The fixtures intercept standard Playwright APIs (`click`, `fill`, `hover`, etc.) transparently - **no custom code needed in tests**.
+
+### Debug Mode Features
+
+When running `pnpm test:debug`, the fixtures automatically:
+
+- Inject an animated SVG cursor overlay
+- Animate cursor movement to elements before clicking
+- Show click ripple effects
+
+Tests remain **100% standard Playwright code** - the cursor effects are purely visual and only apply to `click()` operations.
+
+### Package Scripts
+
+| Script | Command | Description |
+| ------ | ------- | ----------- |
+| `pnpm test` | `playwright test` | Run all tests headless |
+| `pnpm test:headed` | `playwright test --headed` | Run with browser visible |
+| `pnpm test:debug` | `SHOW_CURSOR=true playwright test --headed --workers=1` | Debug mode with animated cursor |
+| `pnpm test:report` | `playwright show-report` | View HTML test report |
+
 ## Test Structure Conventions
 
 ### File Mapping
@@ -245,3 +285,109 @@ await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
 | Search results | 10000ms |
 | Dialog close after mutation | 15000ms |
 | Default | 5000ms |
+
+## Test File Template
+
+Use this template when generating new test files:
+
+```typescript
+import { test, expect } from "../fixtures";
+
+test.describe("Feature Name", () => {
+  // Add beforeEach for item-related tests
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/collections/coll-1");
+    await expect(page.locator(".animate-spin")).not.toBeVisible({
+      timeout: 10000,
+    });
+  });
+
+  test("should [scenario from feature file]", async ({ page }) => {
+    // Test implementation
+  });
+});
+```
+
+### Test Patterns by Feature Type
+
+#### CRUD Operations (item-create, item-view, item-edit, item-delete)
+
+```typescript
+// Use shared beforeEach
+test.beforeEach(async ({ page }) => {
+  await page.goto("/collections/coll-1");
+  await expect(page.locator(".animate-spin")).not.toBeVisible({ timeout: 10000 });
+});
+
+// For create: open dialog, fill form, submit, verify
+// For view: click view button, verify dialog content
+// For edit: click edit button, modify fields, save, verify
+// For delete: click delete button, confirm, verify removal
+```
+
+#### List/Search/Pagination
+
+```typescript
+// Navigate and wait for content
+await page.goto("/collections/coll-1");
+await expect(page.locator(".rounded-lg.border").first()).toBeVisible({ timeout: 10000 });
+
+// For search: fill input, wait for URL update
+await page.getByPlaceholder("Search...").fill("query");
+await expect(page).toHaveURL(/query=/, { timeout: 5000 });
+
+// For pagination: click buttons, verify page info
+await page.getByRole("button", { name: "Next", exact: true }).click();
+await expect(page.getByText(/Page 2 of/)).toBeVisible();
+```
+
+#### API Mocking (for edge cases)
+
+```typescript
+test.describe("Edge Cases", () => {
+  // NO beforeEach here - route must be set up before navigation
+
+  test("should handle empty state", async ({ page }) => {
+    await page.route("**/api/collections/*/items*", (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          items: [],
+          total_count: 0,
+          page: 1,
+          page_size: 10,
+          total_pages: 0,
+        }),
+      });
+    });
+
+    await page.goto("/collections/coll-1");
+    await expect(page.getByText("No items found")).toBeVisible({ timeout: 10000 });
+  });
+});
+```
+
+## Cursor Visualization (Debug Mode)
+
+The fixtures system includes an animated cursor for visual debugging. When `SHOW_CURSOR=true`:
+
+- A custom SVG cursor follows interactions
+- Click animations show ripple effects
+- Movement uses smooth eased animation
+
+This is purely visual and works by **intercepting the `click()` method**. Tests run identically with or without the cursor - no conditional code or custom methods required.
+
+## Regeneration Checklist
+
+When regenerating tests from feature files:
+
+1. ✅ Import from `../fixtures` (not `@playwright/test`)
+2. ✅ Use 1:1 file mapping (feature name → test name)
+3. ✅ Include `beforeEach` for item CRUD tests
+4. ✅ Use separate `describe` blocks for tests needing route mocks
+5. ✅ Use `{ exact: true }` for "Next" pagination button
+6. ✅ Use appropriate timeouts from recommendations
+7. ✅ Handle optional description field conditionally
+8. ✅ Use `Date.now()` for unique test data names
+9. ✅ Use snake_case for API mock responses

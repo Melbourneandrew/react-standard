@@ -1,6 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Playwright selector mappings for test generation",
+  "description": "Playwright selector mappings and metadata for test generation from Gherkin feature files",
+
+  "imports": {
+    "required": "import { test, expect } from \"../fixtures\";",
+    "note": "Always import from ../fixtures, NOT from @playwright/test"
+  },
 
   "testStructure": {
     "fileMapping": "1:1 mapping between feature files and test files",
@@ -224,5 +229,34 @@
     "invalidCollectionId": "Invalid collection IDs still render the items page (with empty/error state), not a dedicated 'not found' page.",
     "snakeCaseApi": "API uses snake_case field names (total_count, page_size, total_pages, collection_id, created_at, updated_at)",
     "uniqueTestData": "Use Date.now() for unique names in create/update tests to avoid conflicts in parallel execution"
+  },
+
+  "testGenerationRules": {
+    "fileNaming": "Convert feature filename to spec filename: foo-bar.feature → foo-bar.spec.ts",
+    "describeBlock": "Use test.describe() with feature name as first argument",
+    "testNaming": "Convert Gherkin scenario to test name: 'Scenario: User creates item' → test('should allow user to create item', ...)",
+    "givenWhenThen": {
+      "given": "Setup/navigation in beforeEach or test start",
+      "when": "User actions (click, fill, etc.)",
+      "then": "Assertions (expect statements)"
+    }
+  },
+
+  "templates": {
+    "basicTest": "test('should [action]', async ({ page }) => {\n  // Setup\n  // Action\n  // Assert\n});",
+    "itemCrudBeforeEach": "test.beforeEach(async ({ page }) => {\n  await page.goto('/collections/coll-1');\n  await expect(page.locator('.animate-spin')).not.toBeVisible({ timeout: 10000 });\n});",
+    "apiMock": "await page.route('**/api/collections/*/items*', (route) => {\n  route.fulfill({\n    status: 200,\n    contentType: 'application/json',\n    body: JSON.stringify({ items: [], total_count: 0, page: 1, page_size: 10, total_pages: 0 })\n  });\n});"
+  },
+
+  "fixturesFile": {
+    "path": "playwright/fixtures.ts",
+    "exports": ["test", "expect"],
+    "purpose": "Provides base test with transparent cursor visualization for debug mode",
+    "debugEnvVar": "SHOW_CURSOR=true enables animated cursor",
+    "features": {
+      "automaticCursor": "Intercepts click() to show cursor movement before clicking",
+      "clickAnimation": "Ripple effect on clicks"
+    },
+    "testCodeStyle": "100% standard Playwright APIs - no custom cursor methods needed"
   }
 }

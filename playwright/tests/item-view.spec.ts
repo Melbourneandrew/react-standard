@@ -1,7 +1,5 @@
 import { expect, test } from "../fixtures";
 
-const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
-
 test.describe("Item View", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
@@ -12,27 +10,13 @@ test.describe("Item View", () => {
 
   test("should open view dialog when clicking eye button", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(viewButton);
-    } else {
-      await viewButton.click();
-    }
-
+    await firstItem.locator("button:has(svg.lucide-eye)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
   test("should display item details in view dialog", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(viewButton);
-    } else {
-      await viewButton.click();
-    }
-
+    await firstItem.locator("button:has(svg.lucide-eye)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Wait for item to load (title should not be "Loading..." or "Error")
@@ -48,13 +32,7 @@ test.describe("Item View", () => {
 
   test("should close view dialog", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
-    const viewButton = firstItem.locator("button:has(svg.lucide-eye)");
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(viewButton);
-    } else {
-      await viewButton.click();
-    }
+    await firstItem.locator("button:has(svg.lucide-eye)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Close with Escape key

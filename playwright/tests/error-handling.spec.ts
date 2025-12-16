@@ -1,7 +1,5 @@
 import { expect, test } from "../fixtures";
 
-const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
-
 test.describe("Error Handling", () => {
   test("should handle invalid collection ID gracefully", async ({ page }) => {
     await page.goto("/collections/invalid-collection-id");
@@ -58,27 +56,12 @@ test.describe("Error Handling", () => {
     });
 
     // Open create dialog
-    const createButton = page.locator("button:has(svg.lucide-plus)");
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(createButton);
-    } else {
-      await createButton.click();
-    }
+    await page.locator("button:has(svg.lucide-plus)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill and submit
-    const nameInput = page.getByLabel("Name");
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nameInput);
-    }
-    await nameInput.fill("Test Item");
-
-    const submitBtn = page.getByRole("button", { name: /create/i });
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(submitBtn);
-    } else {
-      await submitBtn.click();
-    }
+    await page.getByLabel("Name").fill("Test Item");
+    await page.getByRole("button", { name: /create/i }).click();
 
     // Dialog should remain open on error
     await page.waitForTimeout(1000);

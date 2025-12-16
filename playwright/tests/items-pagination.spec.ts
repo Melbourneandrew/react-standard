@@ -1,7 +1,5 @@
 import { expect, test } from "../fixtures";
 
-const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
-
 test.describe("Items Pagination", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
@@ -15,7 +13,7 @@ test.describe("Items Pagination", () => {
   }) => {
     await expect(page.getByRole("button", { name: "Previous" })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Next", exact: true }),
+      page.getByRole("button", { name: "Next", exact: true })
     ).toBeVisible();
 
     // Should show page info
@@ -28,36 +26,18 @@ test.describe("Items Pagination", () => {
   });
 
   test("should navigate to next page", async ({ page }) => {
-    const nextButton = page.getByRole("button", { name: "Next", exact: true });
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nextButton);
-    } else {
-      await nextButton.click();
-    }
-
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByText(/Page 2 of \d+/)).toBeVisible();
   });
 
   test("should navigate back to previous page", async ({ page }) => {
     // Go to page 2 first
-    const nextButton = page.getByRole("button", { name: "Next", exact: true });
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nextButton);
-    } else {
-      await nextButton.click();
-    }
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
 
     // Click previous
-    const prevButton = page.getByRole("button", { name: "Previous" });
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(prevButton);
-    } else {
-      await prevButton.click();
-    }
-
+    await page.getByRole("button", { name: "Previous" }).click();
     await expect(page.getByText(/Page 1 of \d+/)).toBeVisible();
   });
 
@@ -69,18 +49,13 @@ test.describe("Items Pagination", () => {
 
     // Navigate to last page
     for (let i = 1; i < totalPages; i++) {
-      const nextBtn = page.getByRole("button", { name: "Next", exact: true });
-      if (SHOW_CURSOR) {
-        await page.cursor.clickElement(nextBtn);
-      } else {
-        await nextBtn.click();
-      }
+      await page.getByRole("button", { name: "Next", exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`page=${i + 1}`));
     }
 
     // Next button should be disabled
     await expect(
-      page.getByRole("button", { name: "Next", exact: true }),
+      page.getByRole("button", { name: "Next", exact: true })
     ).toBeDisabled();
   });
 });
@@ -121,10 +96,10 @@ test.describe("Items Pagination - Edge Cases", () => {
 
     // Pagination controls should not be visible
     await expect(
-      page.getByRole("button", { name: "Previous" }),
+      page.getByRole("button", { name: "Previous" })
     ).not.toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Next", exact: true }),
+      page.getByRole("button", { name: "Next", exact: true })
     ).not.toBeVisible();
   });
 });

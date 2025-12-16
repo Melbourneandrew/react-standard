@@ -1,7 +1,5 @@
 import { test, expect } from "../fixtures";
 
-const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
-
 test.describe("Item Creation", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
@@ -12,48 +10,22 @@ test.describe("Item Creation", () => {
 
   test("should open create dialog when clicking + button", async ({ page }) => {
     const createButton = page.locator("button:has(svg.lucide-plus)");
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(createButton);
-    } else {
-      await createButton.click();
-    }
-
+    await createButton.click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
   test("should create item successfully", async ({ page }) => {
-    const createButton = page.locator("button:has(svg.lucide-plus)");
-    const nameInput = page.getByLabel("Name");
-    const descInput = page.getByLabel("Description");
-    const submitBtn = page.getByRole("button", { name: /create/i });
-
     // Open create dialog
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(createButton);
-    } else {
-      await createButton.click();
-    }
+    await page.locator("button:has(svg.lucide-plus)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in the form
     const uniqueName = `Test Item ${Date.now()}`;
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nameInput);
-    }
-    await nameInput.fill(uniqueName);
-
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(descInput);
-    }
-    await descInput.fill("Test description for new item");
+    await page.getByLabel("Name").fill(uniqueName);
+    await page.getByLabel("Description").fill("Test description for new item");
 
     // Submit
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(submitBtn);
-    } else {
-      await submitBtn.click();
-    }
+    await page.getByRole("button", { name: /create/i }).click();
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
@@ -68,61 +40,31 @@ test.describe("Item Creation", () => {
   test("should create item with required fields only (name, no description)", async ({
     page,
   }) => {
-    const createButton = page.locator("button:has(svg.lucide-plus)");
-    const nameInput = page.getByLabel("Name");
-    const submitBtn = page.getByRole("button", { name: /create/i });
-
     // Open create dialog
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(createButton);
-    } else {
-      await createButton.click();
-    }
+    await page.locator("button:has(svg.lucide-plus)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in only the name
     const uniqueName = `NameOnly ${Date.now()}`;
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nameInput);
-    }
-    await nameInput.fill(uniqueName);
+    await page.getByLabel("Name").fill(uniqueName);
 
     // Submit
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(submitBtn);
-    } else {
-      await submitBtn.click();
-    }
+    await page.getByRole("button", { name: /create/i }).click();
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 10000 });
   });
 
   test("should cancel item creation", async ({ page }) => {
-    const createButton = page.locator("button:has(svg.lucide-plus)");
-    const nameInput = page.getByLabel("Name");
-    const cancelBtn = page.getByRole("button", { name: /cancel/i });
-
     // Open create dialog
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(createButton);
-    } else {
-      await createButton.click();
-    }
+    await page.locator("button:has(svg.lucide-plus)").click();
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Fill in some data
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(nameInput);
-    }
-    await nameInput.fill("Should Not Exist");
+    await page.getByLabel("Name").fill("Should Not Exist");
 
     // Cancel
-    if (SHOW_CURSOR) {
-      await page.cursor.clickElement(cancelBtn);
-    } else {
-      await cancelBtn.click();
-    }
+    await page.getByRole("button", { name: /cancel/i }).click();
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();
