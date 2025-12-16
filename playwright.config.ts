@@ -14,7 +14,7 @@ export default defineConfig({
     trace: "on-first-retry",
     // Slow down operations when showing cursor
     ...(showCursor && {
-      launchOptions: { slowMo: 50 },
+      launchOptions: { slowMo: 200 },
     }),
   },
   projects: [
