@@ -1,5 +1,7 @@
 import { expect, test } from "../fixtures";
 
+const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
+
 test.describe("Item Edit", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
@@ -13,7 +15,12 @@ test.describe("Item Edit", () => {
   }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
-    await editButton.click();
+
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(editButton);
+    } else {
+      await editButton.click();
+    }
 
     await expect(page.getByRole("dialog")).toBeVisible();
   });
@@ -23,7 +30,11 @@ test.describe("Item Edit", () => {
     const itemName = await firstItem.locator("h3").textContent();
 
     const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
-    await editButton.click();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(editButton);
+    } else {
+      await editButton.click();
+    }
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Name field should be pre-filled
@@ -33,16 +44,30 @@ test.describe("Item Edit", () => {
   test("should update item successfully", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
-    await editButton.click();
+
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(editButton);
+    } else {
+      await editButton.click();
+    }
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Change the name
     const uniqueName = `Updated ${Date.now()}`;
-    await page.getByLabel("Name").clear();
-    await page.getByLabel("Name").fill(uniqueName);
+    const nameInput = page.getByLabel("Name");
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(nameInput);
+    }
+    await nameInput.clear();
+    await nameInput.fill(uniqueName);
 
     // Save
-    await page.getByRole("button", { name: /save/i }).click();
+    const saveBtn = page.getByRole("button", { name: /save/i });
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(saveBtn);
+    } else {
+      await saveBtn.click();
+    }
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
@@ -58,15 +83,28 @@ test.describe("Item Edit", () => {
     const originalName = await firstItem.locator("h3").textContent();
 
     const editButton = firstItem.locator("button:has(svg.lucide-pencil)");
-    await editButton.click();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(editButton);
+    } else {
+      await editButton.click();
+    }
     await expect(page.getByRole("dialog")).toBeVisible();
 
     // Change the name
-    await page.getByLabel("Name").clear();
-    await page.getByLabel("Name").fill("Should Not Be Saved");
+    const nameInput = page.getByLabel("Name");
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(nameInput);
+    }
+    await nameInput.clear();
+    await nameInput.fill("Should Not Be Saved");
 
     // Cancel
-    await page.getByRole("button", { name: /cancel/i }).click();
+    const cancelBtn = page.getByRole("button", { name: /cancel/i });
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(cancelBtn);
+    } else {
+      await cancelBtn.click();
+    }
 
     // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();

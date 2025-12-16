@@ -1,5 +1,7 @@
 import { expect, test } from "../fixtures";
 
+const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
+
 test.describe("Collection Selection", () => {
   test("should show welcome page with collection dropdown", async ({
     page,
@@ -23,7 +25,11 @@ test.describe("Collection Selection", () => {
 
     // Click the card's dropdown (second combobox, the one in the welcome card)
     const cardDropdown = page.getByRole("combobox").nth(1);
-    await cardDropdown.click();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(cardDropdown);
+    } else {
+      await cardDropdown.click();
+    }
 
     // Wait for collections to load and listbox to appear
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
@@ -37,13 +43,22 @@ test.describe("Collection Selection", () => {
 
     // Click the card's dropdown
     const cardDropdown = page.getByRole("combobox").nth(1);
-    await cardDropdown.click();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(cardDropdown);
+    } else {
+      await cardDropdown.click();
+    }
 
     // Wait for options to load
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select the first collection
-    await page.getByRole("option").first().click();
+    const firstOption = page.getByRole("option").first();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(firstOption);
+    } else {
+      await firstOption.click();
+    }
 
     // Should navigate to collection page
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);
@@ -66,13 +81,22 @@ test.describe("Collection Selection", () => {
 
     // Find and click the navbar dropdown (first combobox)
     const navDropdown = page.getByRole("combobox").first();
-    await navDropdown.click();
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(navDropdown);
+    } else {
+      await navDropdown.click();
+    }
 
     // Wait for options to load
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
     // Select a different collection (second option)
-    await page.getByRole("option").nth(1).click();
+    const secondOption = page.getByRole("option").nth(1);
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(secondOption);
+    } else {
+      await secondOption.click();
+    }
 
     // Should navigate to different collection
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);

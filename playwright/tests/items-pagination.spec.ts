@@ -1,5 +1,7 @@
 import { expect, test } from "../fixtures";
 
+const SHOW_CURSOR = process.env.SHOW_CURSOR === "true";
+
 test.describe("Items Pagination", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/collections/coll-1");
@@ -27,7 +29,12 @@ test.describe("Items Pagination", () => {
 
   test("should navigate to next page", async ({ page }) => {
     const nextButton = page.getByRole("button", { name: "Next", exact: true });
-    await nextButton.click();
+
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(nextButton);
+    } else {
+      await nextButton.click();
+    }
 
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByText(/Page 2 of \d+/)).toBeVisible();
@@ -35,11 +42,21 @@ test.describe("Items Pagination", () => {
 
   test("should navigate back to previous page", async ({ page }) => {
     // Go to page 2 first
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    const nextButton = page.getByRole("button", { name: "Next", exact: true });
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(nextButton);
+    } else {
+      await nextButton.click();
+    }
     await expect(page).toHaveURL(/page=2/);
 
     // Click previous
-    await page.getByRole("button", { name: "Previous" }).click();
+    const prevButton = page.getByRole("button", { name: "Previous" });
+    if (SHOW_CURSOR) {
+      await page.cursor.clickElement(prevButton);
+    } else {
+      await prevButton.click();
+    }
 
     await expect(page.getByText(/Page 1 of \d+/)).toBeVisible();
   });
@@ -52,7 +69,12 @@ test.describe("Items Pagination", () => {
 
     // Navigate to last page
     for (let i = 1; i < totalPages; i++) {
-      await page.getByRole("button", { name: "Next", exact: true }).click();
+      const nextBtn = page.getByRole("button", { name: "Next", exact: true });
+      if (SHOW_CURSOR) {
+        await page.cursor.clickElement(nextBtn);
+      } else {
+        await nextBtn.click();
+      }
       await expect(page).toHaveURL(new RegExp(`page=${i + 1}`));
     }
 
