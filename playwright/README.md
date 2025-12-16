@@ -139,17 +139,21 @@ pnpm test:record:first
 
 # Record all tests to video (macOS only)
 pnpm test:record
+
+# Clean up generated artifacts and test results
+pnpm test:clean
 ```
 
 ### What each command does
 
-| Command | Browser | Cursor Animation | Video Recording |
-|---------|---------|------------------|-----------------|
-| `pnpm test` | Headless | No | No |
-| `pnpm test:headed` | Visible | No | No |
-| `pnpm test:headed:visual` | Visible | Yes | No |
-| `pnpm test:record:first` | Visible | Yes | Yes (first test file) |
-| `pnpm test:record` | Visible | Yes | Yes (all tests) |
+| Command | Description |
+|---------|-------------|
+| `pnpm test` | Run all tests headless |
+| `pnpm test:headed` | Run tests with browser visible |
+| `pnpm test:headed:visual` | Run with cursor animations (`DEBUG_VISUAL=true`) |
+| `pnpm test:record:first` | Record first test file to video (macOS only) |
+| `pnpm test:record` | Record all tests to video (macOS only) |
+| `pnpm test:clean` | Delete `artifacts/` and `test-results/` directories |
 
 ## Visual Debugging
 
