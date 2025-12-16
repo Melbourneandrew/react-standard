@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const debugVisual = process.env.DEBUG_VISUAL === "true";
+const recordVideo = process.env.RECORD_VIDEO === "true";
 
 export default defineConfig({
   testDir: "./playwright/tests",
@@ -16,6 +17,10 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
+    // Record video when RECORD_VIDEO=true
+    ...(recordVideo && {
+      video: "on",
+    }),
     // Slow down operations in visual debug mode
     ...(debugVisual && {
       launchOptions: { slowMo: 100 },
