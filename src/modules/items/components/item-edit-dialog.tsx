@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useItemUpdateMutation } from "@/modules/items/hooks/query/useItemUpdateMutation";
-import { ErrorTriggerButton } from "@/components/ErrorTriggerButton";
+import { useItemUpdateMutation } from "@/modules/items/hooks/query/use-item-update-mutation";
+import { ErrorTriggerButton } from "@/components/error-trigger-button";
 import type { Item } from "@/modules/items/types/item";
 import {
   Dialog,

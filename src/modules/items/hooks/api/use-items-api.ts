@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useApi } from "../../../../lib/hooks/useApi";
+import { useApi } from "../../../../lib/hooks/use-api";
 import type {
   ApiRequestParams,
   NoQueryParams,

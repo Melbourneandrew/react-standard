@@ -1,7 +1,7 @@
-import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
-import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
-import { useOptimisticMutation } from "@/lib/hooks/useOptimisticMutation";
-import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
+import { useItemsApi } from "@/modules/items/hooks/api/use-items-api";
+import { useCollectionContext } from "@/modules/collections/contexts/collection-context";
+import { useOptimisticMutation } from "@/lib/hooks/use-optimistic-mutation";
+import { useDefaultQueryErrorHandler } from "@/lib/hooks/use-default-query-error-handler";
 import { itemQueryKeys } from "./item-query-keys";
 import type { Item, ItemSearchResponse } from "@/modules/items/types/item";
 

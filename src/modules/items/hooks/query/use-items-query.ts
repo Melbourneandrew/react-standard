@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useItemsApi } from "@/modules/items/hooks/api/useItemsApi";
-import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
-import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
-import { useQueryErrorEffect } from "@/lib/hooks/useQueryErrorEffect";
+import { useItemsApi } from "@/modules/items/hooks/api/use-items-api";
+import { useCollectionContext } from "@/modules/collections/contexts/collection-context";
+import { useDefaultQueryErrorHandler } from "@/lib/hooks/use-default-query-error-handler";
+import { useQueryErrorEffect } from "@/lib/hooks/use-query-error-effect";
 import { itemQueryKeys } from "./item-query-keys";
 import type {
   ItemSearchParams,

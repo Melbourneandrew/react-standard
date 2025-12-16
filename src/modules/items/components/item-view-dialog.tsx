@@ -1,6 +1,6 @@
 "use client";
 
-import { useItemDetail } from "@/modules/items/hooks/useItemDetail";
+import { useItemDetail } from "@/modules/items/hooks/use-item-detail";
 import {
   Dialog,
   DialogContent,

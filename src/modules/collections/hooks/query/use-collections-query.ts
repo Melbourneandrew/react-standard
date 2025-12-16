@@ -10,9 +10,9 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { useCollectionsApi } from "../api/useCollectionsApi";
-import { useDefaultQueryErrorHandler } from "@/lib/hooks/useDefaultQueryErrorHandler";
-import { useQueryErrorEffect } from "@/lib/hooks/useQueryErrorEffect";
+import { useCollectionsApi } from "../api/use-collections-api";
+import { useDefaultQueryErrorHandler } from "@/lib/hooks/use-default-query-error-handler";
+import { useQueryErrorEffect } from "@/lib/hooks/use-query-error-effect";
 import { collectionQueryKeys } from "./collection-query-keys";
 import type {
   CollectionSearchParams,

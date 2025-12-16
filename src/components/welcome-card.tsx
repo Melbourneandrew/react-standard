@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { CollectionsSelectionDropdown } from "@/modules/collections/components/CollectionsSelectionDropdown";
+import { CollectionsSelectionDropdown } from "@/modules/collections/components/collections-selection-dropdown";
 
 export function WelcomeCard() {
   return (

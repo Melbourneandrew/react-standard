@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCollectionsQuery } from "../hooks/query/useCollectionsQuery";
-import { useCollectionContext } from "../contexts/CollectionContext";
+import { useCollectionsQuery } from "../hooks/query/use-collections-query";
+import { useCollectionContext } from "../contexts/collection-context";
 import { Loader2 } from "lucide-react";
 
 /**

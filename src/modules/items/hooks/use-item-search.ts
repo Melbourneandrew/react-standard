@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useItemsQuery } from "@/modules/items/hooks/query/useItemsQuery";
-import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
+import { useItemsQuery } from "@/modules/items/hooks/query/use-items-query";
+import { useCollectionContext } from "@/modules/collections/contexts/collection-context";
 import type { ItemSearchParams } from "../types/item";
 
 /**

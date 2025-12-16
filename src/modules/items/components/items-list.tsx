@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useItemContext } from "@/modules/items/contexts/ItemContext";
+import { useItemContext } from "@/modules/items/contexts/item-context";
 import type { Item } from "@/modules/items/types/item";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ItemViewDialog } from "@/modules/items/components/ItemViewDialog";
-import { ItemEditDialog } from "@/modules/items/components/ItemEditDialog";
-import { ItemDeleteDialog } from "@/modules/items/components/ItemDeleteDialog";
-import { ItemCreationDialog } from "@/modules/items/components/ItemCreationDialog";
+import { ItemViewDialog } from "@/modules/items/components/item-view-dialog";
+import { ItemEditDialog } from "@/modules/items/components/item-edit-dialog";
+import { ItemDeleteDialog } from "@/modules/items/components/item-delete-dialog";
+import { ItemCreationDialog } from "@/modules/items/components/item-creation-dialog";
 import { Search, Plus, Loader2, Eye, Pencil, Trash2 } from "lucide-react";
 
 export default function ItemsList() {

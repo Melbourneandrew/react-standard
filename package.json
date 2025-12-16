@@ -5,7 +5,14 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "check:tsc": "tsc --noEmit",
+    "check:eslint": "eslint .",
+    "check:prettier": "prettier --check .",
+    "check:all": "pnpm check:tsc && pnpm check:eslint && pnpm check:prettier",
+    "fix:eslint": "eslint . --fix",
+    "fix:prettier": "prettier --write .",
+    "fix:all": "pnpm fix:eslint && pnpm fix:prettier"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

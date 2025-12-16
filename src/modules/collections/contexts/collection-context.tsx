@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useCollectionsQuery } from "../hooks/query/useCollectionsQuery";
+import { useCollectionsQuery } from "../hooks/query/use-collections-query";
 import type { Collection } from "../types/collection";
 
 /**

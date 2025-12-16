@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import { useItemSearch } from "../hooks/useItemSearch";
+import { useItemSearch } from "../hooks/use-item-search";
 import type { Item, ItemSearchParams } from "../types/item";
 
 /**

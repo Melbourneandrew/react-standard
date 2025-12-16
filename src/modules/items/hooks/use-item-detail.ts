@@ -1,4 +1,4 @@
-import { useItemsQuery } from "@/modules/items/hooks/query/useItemsQuery";
+import { useItemsQuery } from "@/modules/items/hooks/query/use-items-query";
 
 /**
  * Manager Hook - Fetch and manage a single item

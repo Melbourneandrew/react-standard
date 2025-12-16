@@ -1,7 +1,7 @@
 "use client";
 
-import { useItemDeleteMutation } from "@/modules/items/hooks/query/useItemDeleteMutation";
-import { ErrorTriggerButton } from "@/components/ErrorTriggerButton";
+import { useItemDeleteMutation } from "@/modules/items/hooks/query/use-item-delete-mutation";
+import { ErrorTriggerButton } from "@/components/error-trigger-button";
 import type { Item } from "@/modules/items/types/item";
 import {
   Dialog,
