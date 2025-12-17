@@ -9,12 +9,22 @@
 set -e
 
 # Configuration
-FPS=120  # Options: 30, 60, 120 (120 may duplicate frames due to ProMotion adaptive refresh)
+FPS=60  # Options: 30, 60, 120 (120 can cause corruption on high-res displays)
 
-DIR="playwright/artifacts/$(date +%Y%m%d_%H%M%S)"
+DIR="playwright/artifacts/recordings/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$DIR"
 VIDEO="$DIR/video.mp4"
 METADATA="$DIR/metadata.json"
+
+# Auto-detect screen capture device (finds "Capture screen 0" in device list)
+SCREEN_DEVICE=$(ffmpeg -f avfoundation -list_devices true -i "" 2>&1 | grep -n "Capture screen 0" | head -1 | cut -d'[' -f3 | cut -d']' -f1)
+if [ -z "$SCREEN_DEVICE" ]; then
+  echo "❌ Error: Could not find screen capture device"
+  echo "   Available devices:"
+  ffmpeg -f avfoundation -list_devices true -i "" 2>&1 | grep -E "^\[AVFoundation" | head -10
+  exit 1
+fi
+echo "🖥️  Screen device: $SCREEN_DEVICE"
 
 # Get test filter (defaults to first test file, use --all for all tests)
 if [ "$1" = "--all" ]; then
@@ -48,10 +58,17 @@ START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_EPOCH=$(date +%s)
 
 # Start ffmpeg recording in background
-ffmpeg -f avfoundation -pixel_format uyvy422 -framerate $FPS -i "2:none" \
+ffmpeg -f avfoundation -pixel_format uyvy422 -framerate $FPS -i "${SCREEN_DEVICE}:none" \
   -c:v libx264 -preset ultrafast -r $FPS "$VIDEO" -y </dev/null 2>/dev/null &
 FFPID=$!
 sleep 2  # Let ffmpeg initialize
+
+# Verify ffmpeg is still running
+if ! kill -0 $FFPID 2>/dev/null; then
+  echo "❌ Error: ffmpeg failed to start recording"
+  echo "   This may be a permissions issue. Check System Settings > Privacy & Security > Screen Recording"
+  exit 1
+fi
 
 # Run tests
 eval $PW_CMD
@@ -80,6 +97,7 @@ cat > "$METADATA" << EOF
   "recording": {
     "backend": "ffmpeg",
     "fps_requested": $FPS,
+    "screen_device": $SCREEN_DEVICE,
     "resolution": "$RESOLUTION",
     "start_time": "$START_TIME",
     "end_time": "$END_TIME",

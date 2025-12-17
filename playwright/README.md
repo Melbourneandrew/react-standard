@@ -23,30 +23,31 @@ playwright/
 │   ├── collections.spec.ts
 │   ├── item-create.spec.ts
 │   └── ...
-├── artifacts/          # Generated - screen recordings (gitignored)
-├── test-results/       # Generated - Playwright traces/artifacts (gitignored)
+├── artifacts/          # Generated outputs (gitignored)
+│   ├── report/         # HTML test report
+│   ├── test-results/   # Traces, screenshots, videos
+│   └── recordings/     # Screen recordings from test:record
 ├── context.md          # AI generation context: patterns, quirks, timing
 ├── fixtures.ts         # Test infrastructure (cursor animations)
 ├── macos-record.sh     # Screen recording script (macOS only)
-├── .gitignore          # Ignores artifacts/ and test-results/
 └── README.md           # This file
 ```
 
 **Note:** The main Playwright configuration lives at `playwright.config.ts` in the project root. It defines:
 - Test directory location (`./playwright/tests`)
-- Output directory (`./playwright/test-results`)
+- Output directories (`./playwright/artifacts/...`)
 - Browser settings, timeouts, and retry behavior
 - Debug mode settings (`DEBUG_VISUAL`, `RECORD_VIDEO` env vars)
 
-### Generated Directories (gitignored)
+### Generated Artifacts (gitignored)
 
-**`artifacts/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each recording session creates a timestamped subfolder (e.g., `artifacts/20251216_140455/video.mp4`). Safe to delete anytime.
+The `artifacts/` directory contains all generated outputs that don't need to be committed:
 
-**`test-results/`** — Playwright's output directory for test artifacts:
-- **Traces**: When a test fails and retries, Playwright saves a trace file here. Open with `npx playwright show-trace <path-to-trace.zip>` to see a timeline of what happened.
-- **Screenshots/Videos**: If configured, Playwright can save per-test screenshots or videos here.
+- **`report/`** — HTML test report. Open with `npx playwright show-report playwright/artifacts/report`.
+- **`test-results/`** — Playwright traces, screenshots, and videos. When a test fails and retries, Playwright saves a trace file here. Open traces with `npx playwright show-trace <path-to-trace.zip>`.
+- **`recordings/`** — Screen recordings from `pnpm test:record:first` and `pnpm test:record`. Each session creates a timestamped subfolder (e.g., `recordings/20251216_140455/video.mp4`).
 
-Both directories are gitignored and can be safely deleted. They regenerate automatically when you run tests.
+The entire `artifacts/` directory is gitignored and can be safely deleted. It regenerates automatically when you run tests.
 
 ## Features (`features/`)
 
@@ -126,7 +127,7 @@ Screen recording script for macOS only. Not available on Linux/Windows.
 
 | Backend | Format | FPS | Pros | Cons |
 |---------|--------|-----|------|------|
-| `ffmpeg` (default) | `.mp4` | 60fps | Smooth video, good for demos | Requires Homebrew ffmpeg, can hang on permission issues |
+| `ffmpeg` (default) | `.mp4` | 60fps | Smooth video, good for demos | Requires Homebrew ffmpeg, can hang on permission issues. 120fps can corrupt on 5K displays. |
 | `screencapture` | `.mov` | ~10fps | Always works, no dependencies | Lower frame rate, choppy playback |
 
 The script uses **ffmpeg by default**. If ffmpeg hangs (permission issues on macOS 15+), you can switch to screencapture by editing the script or running:
@@ -154,13 +155,11 @@ pnpm test:headed
 # Run tests with visual debugging (cursor animations)
 pnpm test:headed:visual
 
-# Record first test to video (macOS only)
+# Record tests to video (macOS only)
+pnpm test:record
 pnpm test:record:first
 
-# Record all tests to video (macOS only)
-pnpm test:record
-
-# Clean up generated artifacts and test results
+# Clean up generated artifacts
 pnpm test:clean
 ```
 
@@ -171,9 +170,9 @@ pnpm test:clean
 | `pnpm test` | Run all tests headless |
 | `pnpm test:headed` | Run tests with browser visible |
 | `pnpm test:headed:visual` | Run with cursor animations (`DEBUG_VISUAL=true`) |
-| `pnpm test:record:first` | Record first test file to video (macOS only) |
-| `pnpm test:record` | Record all tests to video (macOS only) |
-| `pnpm test:clean` | Delete `artifacts/` and `test-results/` directories |
+| `pnpm test:record` | Record all tests to video (macOS only, 60fps) |
+| `pnpm test:record:first` | Record first test only (macOS only) |
+| `pnpm test:clean` | Delete `artifacts/` directory |
 
 ## Visual Debugging
 
@@ -183,7 +182,7 @@ When running with `DEBUG_VISUAL=true`:
 - Human-like typing in input fields
 - Slower execution for observation
 
-Videos are saved to `playwright/artifacts/<timestamp>/video.mp4` at 60fps.
+Videos are saved to `playwright/artifacts/recordings/<timestamp>/video.mp4` at 60fps.
 
 ## Troubleshooting
 

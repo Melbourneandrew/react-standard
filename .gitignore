@@ -12,8 +12,6 @@
 
 # testing
 /coverage
-/playwright-report/
-/blob-report/
 
 # next.js
 /.next/

@@ -5,14 +5,14 @@ const recordVideo = process.env.RECORD_VIDEO === "true";
 
 export default defineConfig({
   testDir: "./playwright/tests",
-  outputDir: "./playwright/test-results",
+  outputDir: "./playwright/artifacts/test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // Retries help with flakiness from parallel data mutations
   retries: process.env.CI ? 2 : 1,
   // Sequential execution prevents data contention between tests
   workers: 1,
-  reporter: "html",
+  reporter: [["html", { outputFolder: "./playwright/artifacts/report" }]],
   // Increase timeout for visual debug mode (animations add overhead)
   timeout: debugVisual ? 60000 : 30000,
   use: {
