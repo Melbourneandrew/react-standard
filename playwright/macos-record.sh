@@ -1,5 +1,5 @@
 #!/bin/bash
-# Record Playwright tests with screen capture (120fps via ffmpeg)
+# Record Playwright tests with screen capture (60fps via ffmpeg)
 # Usage: ./playwright/macos-record.sh [test-filter]
 #
 # NOTE: This script is macOS-specific (uses ffmpeg with AVFoundation).

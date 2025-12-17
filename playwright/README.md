@@ -29,7 +29,9 @@ playwright/
 │   └── recordings/     # Screen recordings from test:record
 ├── context.md          # AI generation context: patterns, quirks, timing
 ├── fixtures.ts         # Test infrastructure (cursor animations)
-├── macos-record.sh     # Screen recording script (macOS only)
+├── macos-record.sh     # Screen recording (macOS only, AVFoundation)
+├── ffmpeg-record.sh    # Screen recording (macOS/Linux, x11grab)
+├── issues.md           # Known issues and bugs to fix
 └── README.md           # This file
 ```
 
@@ -121,27 +123,21 @@ Test infrastructure code:
 
 ### `macos-record.sh`
 
-Screen recording script for macOS only. Not available on Linux/Windows.
+macOS-specific screen recording using ffmpeg with AVFoundation. Requires ffmpeg via Homebrew.
 
-**Two recording backends are available:**
+**Troubleshooting:** If ffmpeg hangs, reset screen recording permissions in System Settings > Privacy & Security > Screen & System Audio Recording.
 
-| Backend | Format | FPS | Pros | Cons |
-|---------|--------|-----|------|------|
-| `ffmpeg` (default) | `.mp4` | 60fps | Smooth video, good for demos | Requires Homebrew ffmpeg, can hang on permission issues. 120fps can corrupt on 5K displays. |
-| `screencapture` | `.mov` | ~10fps | Always works, no dependencies | Lower frame rate, choppy playback |
+### `ffmpeg-record.sh`
 
-The script uses **ffmpeg by default**. If ffmpeg hangs (permission issues on macOS 15+), you can switch to screencapture by editing the script or running:
+Cross-platform screen recording using ffmpeg.
 
-```bash
-# Fallback: use native screencapture (lower fps but always works)
-screencapture -v playwright/artifacts/video.mov &
-SCPID=$!
-sleep 2
-DEBUG_VISUAL=true pnpm test:headed:visual
-kill -INT $SCPID
-```
+| Platform | Capture Method | Requirements |
+|----------|----------------|--------------|
+| macOS | AVFoundation | ffmpeg (via Homebrew) |
+| Linux | x11grab | ffmpeg, X11 display |
+| Windows | Not supported | Use WSL or `RECORD_VIDEO=true` |
 
-**Troubleshooting ffmpeg hangs:** If ffmpeg hangs without recording, it's usually a TCC permission issue. Reset screen recording permissions for Cursor/Terminal in System Settings > Privacy & Security > Screen & System Audio Recording, then restart the app.
+**Note:** On Linux, requires X11. Wayland users may need XWayland or use Playwright's built-in video.
 
 ## Running Tests
 
@@ -153,11 +149,13 @@ pnpm test
 pnpm test:headed
 
 # Run tests with visual debugging (cursor animations)
-pnpm test:headed:visual
+pnpm test:headed:debug
 
-# Record tests to video (macOS only)
-pnpm test:record
-pnpm test:record:first
+# Record tests to video
+pnpm test:record:macos        # macOS native (AVFoundation)
+pnpm test:record:macos:first
+pnpm test:record:ffmpeg       # Cross-platform (x11grab on Linux)
+pnpm test:record:ffmpeg:first
 
 # Clean up generated artifacts
 pnpm test:clean
@@ -169,9 +167,11 @@ pnpm test:clean
 |---------|-------------|
 | `pnpm test` | Run all tests headless |
 | `pnpm test:headed` | Run tests with browser visible |
-| `pnpm test:headed:visual` | Run with cursor animations (`DEBUG_VISUAL=true`) |
-| `pnpm test:record` | Record all tests to video (macOS only, 60fps) |
-| `pnpm test:record:first` | Record first test only (macOS only) |
+| `pnpm test:headed:debug` | Run with cursor animations (`DEBUG_VISUAL=true`) |
+| `pnpm test:record:macos` | Record with macOS native capture (60fps) |
+| `pnpm test:record:macos:first` | Record first test only (macOS) |
+| `pnpm test:record:ffmpeg` | Record with ffmpeg (macOS/Linux, 60fps) |
+| `pnpm test:record:ffmpeg:first` | Record first test only (ffmpeg) |
 | `pnpm test:clean` | Delete `artifacts/` directory |
 
 ## Visual Debugging
@@ -192,13 +192,13 @@ Videos are saved to `playwright/artifacts/recordings/<timestamp>/video.mp4` at 6
 3. Document the fix in `context.md` for future regeneration
 
 ### Test fails but feature should work
-1. Run with `pnpm test:headed:visual` to observe
+1. Run with `pnpm test:headed:debug` to observe
 2. Check if selectors changed → update `context.md`
 3. Check if behavior changed → update feature file
 4. Regenerate the test
 
 ### Selector not found
-1. Run `pnpm test:headed:visual` to observe the test
+1. Run `pnpm test:headed:debug` to observe the test
 2. Use browser DevTools to inspect elements
 3. Update `context.md` with the correct selector
 4. Regenerate affected tests

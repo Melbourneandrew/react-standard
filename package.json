@@ -15,9 +15,11 @@
     "fix:all": "pnpm fix:eslint && pnpm fix:prettier",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:headed:visual": "DEBUG_VISUAL=true playwright test --headed --workers=1",
-    "test:record": "./playwright/macos-record.sh --all",
-    "test:record:first": "./playwright/macos-record.sh",
+    "test:headed:debug": "DEBUG_VISUAL=true playwright test --headed --workers=1",
+    "test:record:macos": "./playwright/macos-record.sh --all",
+    "test:record:macos:first": "./playwright/macos-record.sh",
+    "test:record:ffmpeg": "./playwright/ffmpeg-record.sh --all",
+    "test:record:ffmpeg:first": "./playwright/ffmpeg-record.sh",
     "test:clean": "rm -rf playwright/artifacts"
   },
   "dependencies": {
