@@ -9,7 +9,7 @@ import { MOCK_ITEMS } from "./mock-data";
 import type { Item } from "@/modules/items/types/item";
 
 // Create a mutable copy that can be shared across route handlers
-let mockItems: Item[] = [...MOCK_ITEMS];
+const mockItems: Item[] = [...MOCK_ITEMS];
 
 /**
  * Get all mock items

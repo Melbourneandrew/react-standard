@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient, UseMutationOptions } from "@tanstack/react-query";
+import { useMutation, UseMutationOptions, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Optimistic Mutation Hook - Generic wrapper for mutations with optimistic updates
@@ -111,7 +111,7 @@ export function useOptimisticMutation<
     },
 
     // ✅ Success callback
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables) => {
       customOnSuccess?.(data, variables);
     },
 
@@ -121,4 +121,3 @@ export function useOptimisticMutation<
     },
   });
 }
-
