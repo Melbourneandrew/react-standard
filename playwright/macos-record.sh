@@ -124,3 +124,8 @@ echo "   Video: $VIDEO"
 echo "   Metadata: $METADATA"
 echo "   Duration: ${DURATION}s | Size: $FILE_SIZE | Frames: $FRAME_COUNT"
 exit $EXIT_CODE
+
+
+
+
+

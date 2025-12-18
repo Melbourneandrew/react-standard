@@ -50,3 +50,8 @@ Tracking known problems with the Playwright testing infrastructure.
 - Both scripts use `FPS=60` which should be stable
 - The `RECORD_VIDEO=true` Playwright built-in recording is an alternative that should work cross-platform
 - External monitor setups may need manual display index configuration
+
+
+
+
+
