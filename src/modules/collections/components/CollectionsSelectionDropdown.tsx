@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -8,9 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCollectionsQuery } from "../hooks/query/useCollectionsQuery";
-import { useCollectionContext } from "../contexts/CollectionContext";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useCollectionContext } from "../contexts/CollectionContext";
+import { useCollectionsQuery } from "../hooks/query/useCollectionsQuery";
 
 /**
  * Dropdown for selecting a collection
@@ -20,7 +20,7 @@ import { Loader2 } from "lucide-react";
  */
 export function CollectionsSelectionDropdown() {
   const { currentCollectionId, navigateToCollection } = useCollectionContext();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Load collections only when dropdown is open (lazy loading)
   const { data, isLoadingCollections } = useCollectionsQuery(

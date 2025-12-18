@@ -34,10 +34,10 @@ export default function ItemsList() {
   const [viewItemId, setViewItemId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [deleteItem, setDeleteItem] = useState<Item | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
 
   // Local state for search input to prevent losing focus
-  const [searchInput, setSearchInput] = useState(searchParams.query || "");
+  const [searchInput, setSearchInput] = useState<string>(searchParams.query || "");
 
   // Sync local input with URL query param (when navigating back/forward)
   useEffect(() => {

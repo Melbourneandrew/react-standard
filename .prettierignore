@@ -1,0 +1,31 @@
+# Build outputs
+build/
+cdk.out/
+dist/
+
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+poetry.lock
+
+# Environment
+.env
+.env.*
+
+# IDE & editors
+.cursor/
+
+# Python
+*.pyc
+*.pyd
+*.pyo
+.pytest_cache/
+.python-version
+.venv*/
+__pycache__/
+venv/
+
+# System files
+.DS_Store
+Thumbs.db

@@ -19,7 +19,7 @@ import { ReactNode, useState } from "react";
  * Mutations handle cache invalidation explicitly via onSettled/onSuccess.
  */
 export function QueryProvider({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
+  const [queryClient] = useState<QueryClient>(
     () =>
       new QueryClient({
         defaultOptions: {

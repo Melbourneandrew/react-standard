@@ -37,8 +37,8 @@ export function ItemEditDialog({
 }: ItemEditDialogProps) {
   const { updateItemAsync, isUpdatingItem } = useItemUpdateMutation();
   // Initialize from props - parent's key prop will reset component when item changes
-  const [name, setName] = useState(item?.name || "");
-  const [description, setDescription] = useState(item?.description || "");
+  const [name, setName] = useState<string>(item?.name || "");
+  const [description, setDescription] = useState<string>(item?.description || "");
 
   const handleSave = async () => {
     if (!item) return;

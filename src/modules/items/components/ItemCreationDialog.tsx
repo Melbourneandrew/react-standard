@@ -32,8 +32,8 @@ interface ItemCreationDialogProps {
  */
 export function ItemCreationDialog({ open, onClose }: ItemCreationDialogProps) {
   const { createItemAsync, isCreatingItem } = useItemCreateMutation();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
 
   // Reset form when dialog closes
   useEffect(() => {
