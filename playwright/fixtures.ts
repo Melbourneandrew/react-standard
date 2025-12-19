@@ -11,23 +11,25 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined>
   ]);
 }
 
-// Enhanced visual styles for demo mode
+// Enhanced visual styles for demo mode - cohesive blue/cyan theme
 const DEMO_STYLES = `
+  /* Highlight glow - cyan/teal theme */
   @keyframes pw-glow {
     0%, 100% {
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.7),
-                  0 0 25px rgba(99, 102, 241, 0.5),
-                  0 0 50px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.7),
+                  0 0 20px rgba(6, 182, 212, 0.4),
+                  0 0 40px rgba(6, 182, 212, 0.2);
     }
     50% {
-      box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.9),
-                  0 0 35px rgba(99, 102, 241, 0.6),
-                  0 0 70px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.9),
+                  0 0 30px rgba(6, 182, 212, 0.5),
+                  0 0 60px rgba(6, 182, 212, 0.3);
     }
   }
 
-  @keyframes pw-success {
-    0% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8), 0 0 30px rgba(34, 197, 94, 0.6); }
+  /* Action complete flash - green */
+  @keyframes pw-complete {
+    0% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.9), 0 0 25px rgba(34, 197, 94, 0.6); }
     100% { box-shadow: 0 0 0 0 transparent, 0 0 0 transparent; }
   }
 
@@ -35,38 +37,39 @@ const DEMO_STYLES = `
     position: relative;
     z-index: 10000;
     outline: none !important;
-    animation: pw-glow 0.8s ease-in-out infinite !important;
+    animation: pw-glow 0.7s ease-in-out infinite !important;
     border-radius: 6px !important;
   }
 
   .pw-success {
-    animation: pw-success 0.5s ease-out forwards !important;
+    animation: pw-complete 0.4s ease-out forwards !important;
   }
 
+  /* Action banner - dark slate with cyan accent */
   .pw-action-banner {
     position: fixed;
-    top: 12px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: #f1f5f9;
-    padding: 10px 20px;
-    border-radius: 10px;
+    color: #e2e8f0;
+    padding: 12px 24px;
+    border-radius: 12px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     z-index: 999998;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                0 0 0 1px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(6, 182, 212, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
   }
 
   .pw-action-banner.visible {
@@ -78,18 +81,92 @@ const DEMO_STYLES = `
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
-    animation: pw-pulse 1s ease-in-out infinite;
+    background: #06b6d4;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
+    animation: pw-dot-pulse 1.2s ease-in-out infinite;
   }
 
-  @keyframes pw-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  @keyframes pw-dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
   }
 
   .pw-action-icon {
-    font-size: 14px;
+    font-size: 15px;
+  }
+
+  /* Test result overlay */
+  .pw-result-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .pw-result-overlay.visible {
+    opacity: 1;
+  }
+
+  .pw-result-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pw-result-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .pw-result-icon.pass {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4), 0 0 80px rgba(34, 197, 94, 0.3);
+  }
+
+  .pw-result-icon.fail {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4), 0 0 80px rgba(239, 68, 68, 0.3);
+  }
+
+  .pw-result-icon svg {
+    width: 60px;
+    height: 60px;
+    stroke: white;
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .pw-result-icon.pass svg {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: pw-checkmark 0.4s ease-out 0.2s forwards;
+  }
+
+  .pw-result-icon.fail svg {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: pw-xmark 0.3s ease-out 0.2s forwards;
+  }
+
+  @keyframes pw-result-pop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes pw-checkmark {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes pw-xmark {
+    to { stroke-dashoffset: 0; }
   }
 `;
 
@@ -102,6 +179,12 @@ const DEMO_INIT_SCRIPT = `
   banner.className = 'pw-action-banner';
   banner.id = 'pw-action-banner';
   document.body.appendChild(banner);
+
+  // Create result overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'pw-result-overlay';
+  overlay.id = 'pw-result-overlay';
+  document.body.appendChild(overlay);
 
   window.__pwDemo = {
     showAction: (icon, text) => {
@@ -122,6 +205,20 @@ const DEMO_INIT_SCRIPT = `
       el.classList.remove('pw-highlight');
       el.classList.add('pw-success');
       setTimeout(() => el.classList.remove('pw-success'), 500);
+    },
+    showResult: (passed) => {
+      // Hide action banner
+      banner.classList.remove('visible');
+
+      // Checkmark SVG for pass, X for fail
+      const checkSvg = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      const xSvg = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+      overlay.innerHTML = '<div class="pw-result-icon ' + (passed ? 'pass' : 'fail') + '">' + (passed ? checkSvg : xSvg) + '</div>';
+      overlay.classList.add('visible');
+    },
+    hideResult: () => {
+      overlay.classList.remove('visible');
     }
   };
 })();
@@ -138,7 +235,7 @@ const CURSOR_SCRIPT = `
   document.body.appendChild(cursor);
 
   const ripple = document.createElement('div');
-  ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.6) 0%,rgba(59,130,246,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
+  ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.7) 0%,rgba(6,182,212,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
   document.body.appendChild(ripple);
 
   let x = -100, y = -100;
@@ -384,9 +481,22 @@ export const cursor = {
   },
 };
 
-// Test fixture - just handles cursor injection on navigation
+// Show test result overlay
+async function showTestResult(page: Page, passed: boolean) {
+  if (!DEBUG_VISUAL) return;
+  try {
+    await withTimeout(
+      page.evaluate((p: boolean) => (window as any).__pwDemo?.showResult(p), passed),
+      DEMO_TIMEOUT
+    );
+    // Hold the result on screen
+    await page.waitForTimeout(passed ? 800 : 1200);
+  } catch {}
+}
+
+// Test fixture - handles cursor injection and result overlay
 export const test = base.extend<{ page: Page }>({
-  page: async ({ page }, use) => {
+  page: async ({ page }, use, testInfo) => {
     if (DEBUG_VISUAL) {
       page.on("load", () => injectCursor(page));
       const origGoto = page.goto.bind(page);
@@ -396,7 +506,15 @@ export const test = base.extend<{ page: Page }>({
         return r;
       };
     }
+
+    // Run the test
     await use(page);
+
+    // Show pass/fail result overlay
+    if (DEBUG_VISUAL) {
+      const passed = testInfo.status === "passed" || testInfo.status === "skipped";
+      await showTestResult(page, passed);
+    }
   },
 });
 

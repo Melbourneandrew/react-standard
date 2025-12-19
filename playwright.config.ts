@@ -3,6 +3,11 @@ import { defineConfig, devices } from "@playwright/test";
 const debugVisual = process.env.DEBUG_VISUAL === "true";
 const recordVideo = process.env.RECORD_VIDEO === "true";
 
+// Generate epoch timestamp for video recordings - shared across all workers in a run
+// Use RUN_EPOCH env var if set (for consistent naming across workers), otherwise generate
+const runEpoch = process.env.RUN_EPOCH || Date.now().toString();
+const workerIndex = parseInt(process.env.TEST_PARALLEL_INDEX || "0", 10);
+
 // Grid mode: set GRID_WORKERS to arrange multiple browser windows
 const gridWorkers = parseInt(process.env.GRID_WORKERS || "0", 10);
 const gridMode = gridWorkers > 1;
@@ -56,9 +61,14 @@ function getWindowPosition(workerIndex: number) {
   };
 }
 
+// Video output directory structure: runs/<epoch>/worker-<N>/
+const videoOutputDir = recordVideo
+  ? `./playwright/artifacts/runs/${runEpoch}/worker-${workerIndex + 1}`
+  : "./playwright/artifacts/test-results";
+
 export default defineConfig({
   testDir: "./playwright/tests",
-  outputDir: "./playwright/artifacts/test-results",
+  outputDir: recordVideo ? videoOutputDir : "./playwright/artifacts/test-results",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // Retries help with flakiness from parallel data mutations
@@ -73,7 +83,10 @@ export default defineConfig({
     trace: "on-first-retry",
     // Record video when RECORD_VIDEO=true
     ...(recordVideo && {
-      video: "on",
+      video: {
+        mode: "on",
+        size: { width: 1280, height: 720 },
+      },
     }),
   },
   projects: [
