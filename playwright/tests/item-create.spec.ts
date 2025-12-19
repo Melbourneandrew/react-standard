@@ -14,7 +14,7 @@ test.describe("Item Creation", () => {
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
-  test("should create item successfully", async ({ page }) => {
+  test("should create item successfully @demo", async ({ page }) => {
     // Open create dialog
     await cursor.click(page, page.locator("button:has(svg.lucide-plus)"));
     await expect(page.getByRole("dialog")).toBeVisible();

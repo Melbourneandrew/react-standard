@@ -27,7 +27,7 @@ test.describe("Item Edit", () => {
     await expect(page.getByLabel("Name")).toHaveValue(itemName!);
   });
 
-  test("should update item successfully", async ({ page }) => {
+  test("should update item successfully @demo", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
     await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();

@@ -1,11 +1,6 @@
 import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
-const GRID_WORKERS = parseInt(process.env.GRID_WORKERS || "0", 10);
-
-// Startup delay for grid mode - gives all browser windows time to appear
-// before any tests start running (creates synchronized start effect)
-const GRID_STARTUP_DELAY = GRID_WORKERS > 1 ? 2000 : 0;
 
 // Timeout wrapper to prevent demo effects from hanging tests
 const DEMO_TIMEOUT = 500;
@@ -603,18 +598,9 @@ async function showTestResult(page: Page, passed: boolean) {
   } catch {}
 }
 
-// Track if we've done the startup delay (only need once per worker)
-let hasStartupDelay = false;
-
-// Test fixture - handles cursor injection, startup sync, and result overlay
+// Test fixture - handles cursor injection and result overlay
 export const test = base.extend<{ page: Page }>({
   page: async ({ page }, use, testInfo) => {
-    // Grid mode: wait at startup so all windows appear before tests run
-    if (GRID_STARTUP_DELAY > 0 && !hasStartupDelay) {
-      hasStartupDelay = true;
-      await new Promise((r) => setTimeout(r, GRID_STARTUP_DELAY));
-    }
-
     if (DEBUG_VISUAL) {
       page.on("load", () => injectCursor(page));
       const origGoto = page.goto.bind(page);

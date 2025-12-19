@@ -8,7 +8,7 @@ test.describe("Items Search", () => {
     });
   });
 
-  test("should filter items when searching", async ({ page }) => {
+  test("should filter items when searching @demo", async ({ page }) => {
     await cursor.fill(page, page.getByPlaceholder("Search..."), "Phoenix");
 
     // Wait for debounce and URL update

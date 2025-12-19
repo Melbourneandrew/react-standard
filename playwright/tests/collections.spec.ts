@@ -1,4 +1,4 @@
-import { test, expect, cursor } from "../fixtures";
+import { cursor, expect, test } from "../fixtures";
 
 test.describe("Collection Selection", () => {
   test("should show welcome page with collection dropdown", async ({
@@ -29,7 +29,7 @@ test.describe("Collection Selection", () => {
     await expect(page.getByRole("option").first()).toBeVisible();
   });
 
-  test("should navigate to collection page when a collection is selected", async ({
+  test("should navigate to collection page when a collection is selected @demo", async ({
     page,
   }) => {
     await page.goto("/");

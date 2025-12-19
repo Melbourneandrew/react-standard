@@ -25,7 +25,7 @@ test.describe("Item Delete", () => {
     ).toBeVisible();
   });
 
-  test("should delete item when confirmed", async ({ page }) => {
+  test("should delete item when confirmed @demo", async ({ page }) => {
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
