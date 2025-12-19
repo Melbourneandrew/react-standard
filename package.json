@@ -17,7 +17,6 @@
     "test:headed": "playwright test --headed",
     "test:headed:debug": "DEBUG_VISUAL=true playwright test --headed --workers=1",
     "test:headed:grid": "DEBUG_VISUAL=true GRID_WORKERS=8 playwright test --headed --workers=8",
-    "playwright:slideshow": "DEBUG_VISUAL=true SLIDESHOW=true SLOW_MO=300 playwright test --headed --workers=1 --grep '@demo' --max-failures=1",
     "playwright:demo0": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true SLOW_MO=600 playwright test --headed --workers=1 --grep '@demo'",
     "playwright:demo1": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true playwright test --headed --workers=1 --grep '@demo'",
     "playwright:demo2": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true GRID_WORKERS=8 playwright test --headed --workers=8",
@@ -26,7 +25,8 @@
     "test:record:macos:first": "./playwright/macos-record.sh",
     "test:record:ffmpeg": "./playwright/ffmpeg-record.sh --all",
     "test:record:ffmpeg:first": "./playwright/ffmpeg-record.sh",
-    "test:clean": "rm -rf playwright/artifacts"
+    "test:clean": "rm -rf playwright/artifacts",
+    "test:dashboard": "node playwright/artifacts/dashboard.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

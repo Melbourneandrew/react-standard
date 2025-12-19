@@ -2,7 +2,6 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
 const GRID_MODE = parseInt(process.env.GRID_WORKERS || "0", 10) > 1;
-const SLIDESHOW_MODE = process.env.SLIDESHOW === "true";
 
 // In grid mode, hide the story and action panels (too much visual noise)
 const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
@@ -14,55 +13,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined>
     promise,
     new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms)),
   ]);
-}
-
-// Slideshow mode: wait for user keypress to advance
-async function waitForKeypress(page: Page): Promise<void> {
-  if (!SLIDESHOW_MODE) return;
-
-  // Show a subtle "Press → to continue" hint
-  await page.evaluate(() => {
-    let hint = document.getElementById('pw-slideshow-hint');
-    if (!hint) {
-      hint = document.createElement('div');
-      hint.id = 'pw-slideshow-hint';
-      hint.setAttribute('aria-hidden', 'true');
-      hint.setAttribute('inert', '');
-      hint.style.cssText = `
-        position: fixed;
-        bottom: 16px;
-        right: 16px;
-        background: rgba(15, 23, 42, 0.9);
-        color: #94a3b8;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-family: ui-monospace, monospace;
-        font-size: 12px;
-        z-index: 9999999;
-        pointer-events: none;
-        border: 1px solid rgba(148, 163, 184, 0.2);
-      `;
-      document.body.appendChild(hint);
-    }
-    hint.textContent = 'Press → to continue';
-    hint.style.display = 'block';
-  });
-
-  // Wait for right arrow key
-  await page.evaluate(() => {
-    return new Promise<void>((resolve) => {
-      const handler = (e: KeyboardEvent) => {
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-          e.preventDefault();
-          document.removeEventListener('keydown', handler);
-          const hint = document.getElementById('pw-slideshow-hint');
-          if (hint) hint.style.display = 'none';
-          resolve();
-        }
-      };
-      document.addEventListener('keydown', handler);
-    });
-  });
 }
 
 // Enhanced visual styles for demo mode - cohesive blue/cyan theme
@@ -679,8 +629,6 @@ export const cursor = {
     await locator.click();
     await successElement(page, locator);
     await completeAction(page, actionText);
-    // In slideshow mode, wait for keypress after each action
-    await waitForKeypress(page);
   },
 
   /**
@@ -705,8 +653,6 @@ export const cursor = {
     await locator.pressSequentially(value, { delay: TYPE_DELAY });
     await successElement(page, locator);
     await completeAction(page, actionText);
-    // In slideshow mode, wait for keypress after each action
-    await waitForKeypress(page);
   },
 
   /**
@@ -781,12 +727,8 @@ export const story = {
         page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
         DEMO_TIMEOUT
       );
-      // In slideshow mode, wait for keypress; otherwise brief pause
-      if (SLIDESHOW_MODE) {
-        await waitForKeypress(page);
-      } else {
-        await page.waitForTimeout(400);
-      }
+      // Brief pause to read the step
+      await page.waitForTimeout(400);
     } catch {}
   },
 
