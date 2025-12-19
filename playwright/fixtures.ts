@@ -3,12 +3,13 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
 const GRID_MODE = parseInt(process.env.GRID_WORKERS || "0", 10) > 1;
 const SLOW_MO = parseInt(process.env.SLOW_MO || "0", 10);
+const FAST_MODE = process.env.FAST_MODE === "true";
 
 // In grid mode, hide the story and action panels (too much visual noise)
 const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
 
-// Timing multiplier for slow mode (SLOW_MO=600 → 3x slower animations)
-const TIMING_MULTIPLIER = SLOW_MO > 0 ? Math.max(1, SLOW_MO / 200) : 1;
+// Timing multiplier: FAST_MODE=0.3x, SLOW_MO=3x, normal=1x
+const TIMING_MULTIPLIER = FAST_MODE ? 0.3 : SLOW_MO > 0 ? Math.max(1, SLOW_MO / 200) : 1;
 
 // Focus toggle only in slow mode - dims page when reading story, hides story when acting
 const FOCUS_TOGGLE = SLOW_MO > 0 && SHOW_PANELS;
@@ -537,7 +538,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
   try {
     // First scroll element into view and wait for scroll to settle
     await locator.scrollIntoViewIfNeeded({ timeout: DEMO_TIMEOUT });
-    await page.waitForTimeout(80); // Quick settle for scroll
+    if (!FAST_MODE) await page.waitForTimeout(80); // Quick settle for scroll
 
     const box = await locator.boundingBox({ timeout: DEMO_TIMEOUT });
     if (box) {
@@ -553,7 +554,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
         ),
         new Promise((resolve) => setTimeout(resolve, DEMO_TIMEOUT + moveDuration)),
       ]);
-      await page.waitForTimeout(50); // Quick settle after cursor moves
+      if (!FAST_MODE) await page.waitForTimeout(50); // Quick settle after cursor moves
     }
   } catch {}
 }
@@ -565,7 +566,7 @@ async function animateClick(page: Page) {
       page.evaluate(() => (window as any).__cursor?.click()),
       DEMO_TIMEOUT
     );
-    await page.waitForTimeout(50);
+    if (!FAST_MODE) await page.waitForTimeout(50);
   } catch {}
 }
 
@@ -600,7 +601,7 @@ async function getElementLabel(locator: Locator): Promise<string> {
 
 // Show action banner
 async function showAction(page: Page, icon: string, text: string) {
-  if (!SHOW_PANELS) return; // Hide in grid mode
+  if (!SHOW_PANELS || FAST_MODE) return; // Skip in grid mode and fast mode
   try {
     await withTimeout(
       page.evaluate(
@@ -614,7 +615,7 @@ async function showAction(page: Page, icon: string, text: string) {
 
 // Complete and hide action banner (adds to history)
 async function completeAction(page: Page, actionText: string) {
-  if (!SHOW_PANELS) return; // Hide in grid mode
+  if (!SHOW_PANELS || FAST_MODE) return; // Skip in grid mode and fast mode
   try {
     await withTimeout(
       page.evaluate((text: string) => (window as any).__pwDemo?.completeAction(text), actionText),
@@ -625,7 +626,7 @@ async function completeAction(page: Page, actionText: string) {
 
 // Hide action banner
 async function hideAction(page: Page) {
-  if (!SHOW_PANELS) return; // Hide in grid mode
+  if (!SHOW_PANELS || FAST_MODE) return; // Skip in grid mode and fast mode
   try {
     await withTimeout(
       page.evaluate(() => (window as any).__pwDemo?.hideAction()),
@@ -702,18 +703,25 @@ export const cursor = {
       return;
     }
     // In slow mode, switch focus from story to page
-    await focusPage(page);
-    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+    if (FOCUS_TOGGLE) {
+      await focusPage(page);
+      await page.waitForTimeout(400);
+    }
 
-    const label = await getElementLabel(locator);
-    const actionText = `by clicking "${label}"`;
-    await showAction(page, "👆", actionText);
+    let actionText = "";
+    if (!FAST_MODE) {
+      const label = await getElementLabel(locator);
+      actionText = `by clicking "${label}"`;
+      await showAction(page, "👆", actionText);
+    }
     await animateCursorTo(page, locator);
     await highlightElement(page, locator); // Highlight after cursor arrives
     await animateClick(page);
     await locator.click();
     await successElement(page, locator);
-    await completeAction(page, actionText);
+    if (!FAST_MODE) {
+      await completeAction(page, actionText);
+    }
   },
 
   /**
@@ -725,23 +733,34 @@ export const cursor = {
       return;
     }
     // In slow mode, switch focus from story to page
-    await focusPage(page);
-    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+    if (FOCUS_TOGGLE) {
+      await focusPage(page);
+      await page.waitForTimeout(400);
+    }
 
-    const label = await getElementLabel(locator);
-    const displayValue = value.length > 25 ? value.slice(0, 25) + "…" : value;
-    const actionText = `by typing "${displayValue}"`;
-    await showAction(page, "⌨️", actionText);
+    let actionText = "";
+    if (!FAST_MODE) {
+      const label = await getElementLabel(locator);
+      const displayValue = value.length > 25 ? value.slice(0, 25) + "…" : value;
+      actionText = `by typing "${displayValue}"`;
+      await showAction(page, "⌨️", actionText);
+    }
     await animateCursorTo(page, locator);
     await highlightElement(page, locator); // Highlight after cursor arrives
     await animateClick(page);
     await locator.click();
     await page.keyboard.press("Meta+A");
     await page.keyboard.press("Backspace");
-    // Use Playwright's built-in delay - no loop overhead
-    await locator.pressSequentially(value, { delay: TYPE_DELAY });
+    // In fast mode, use fill() for instant typing; otherwise type character by character
+    if (FAST_MODE) {
+      await locator.fill(value);
+    } else {
+      await locator.pressSequentially(value, { delay: TYPE_DELAY });
+    }
     await successElement(page, locator);
-    await completeAction(page, actionText);
+    if (!FAST_MODE) {
+      await completeAction(page, actionText);
+    }
   },
 
   /**
@@ -753,19 +772,26 @@ export const cursor = {
       return;
     }
     // In slow mode, switch focus from story to page
-    await focusPage(page);
-    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+    if (FOCUS_TOGGLE) {
+      await focusPage(page);
+      await page.waitForTimeout(400);
+    }
 
-    const label = await getElementLabel(locator);
-    const actionText = `by hovering over "${label}"`;
-    await showAction(page, "👀", actionText);
+    let actionText = "";
+    if (!FAST_MODE) {
+      const label = await getElementLabel(locator);
+      actionText = `by hovering over "${label}"`;
+      await showAction(page, "👀", actionText);
+    }
     await animateCursorTo(page, locator);
     await highlightElement(page, locator); // Highlight after cursor arrives
     await locator.hover();
-    await page.waitForTimeout(Math.round(200 * TIMING_MULTIPLIER));
+    if (!FAST_MODE) await page.waitForTimeout(Math.round(200 * TIMING_MULTIPLIER));
     await successElement(page, locator);
-    await completeAction(page, actionText);
-    await hideAction(page);
+    if (!FAST_MODE) {
+      await completeAction(page, actionText);
+      await hideAction(page);
+    }
   },
 };
 
@@ -774,7 +800,7 @@ async function showTestResult(page: Page, passed: boolean) {
   if (!DEBUG_VISUAL) return;
   try {
     // Pause before showing result - let user appreciate the final state
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(FAST_MODE ? 200 : 800);
 
     await withTimeout(
       page.evaluate((p: boolean) => (window as any).__pwDemo?.showResult(p), passed),
@@ -782,7 +808,7 @@ async function showTestResult(page: Page, passed: boolean) {
     );
 
     // Hold the result on screen
-    await page.waitForTimeout(passed ? 1800 : 2500);
+    await page.waitForTimeout(FAST_MODE ? 600 : passed ? 1800 : 2500);
   } catch {}
 }
 
@@ -832,13 +858,14 @@ export const story = {
           page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
           DEMO_TIMEOUT
         );
-        await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+        // In fast mode, minimal pause; otherwise scale with timing
+        if (!FAST_MODE) {
+          await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+        }
       } else {
-        // Subsequent steps: do focus toggle for narrative effect
+        // Subsequent steps: do focus toggle for narrative effect (slow mode only)
         await focusStory(page);
         if (FOCUS_TOGGLE) await page.waitForTimeout(400);
-
-        // Brief pause to see current state before advancing
         if (FOCUS_TOGGLE) await page.waitForTimeout(300);
 
         // Advance to next step
@@ -847,8 +874,10 @@ export const story = {
           DEMO_TIMEOUT
         );
 
-        // Pause to read the new step
-        await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+        // In fast mode, no pause - step updates and action starts together
+        if (!FAST_MODE) {
+          await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+        }
       }
 
       // Note: focusPage() is called by cursor actions, not here
