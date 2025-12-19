@@ -2,6 +2,7 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
 const GRID_MODE = parseInt(process.env.GRID_WORKERS || "0", 10) > 1;
+const SLIDESHOW_MODE = process.env.SLIDESHOW === "true";
 
 // In grid mode, hide the story and action panels (too much visual noise)
 const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
@@ -13,6 +14,55 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined>
     promise,
     new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms)),
   ]);
+}
+
+// Slideshow mode: wait for user keypress to advance
+async function waitForKeypress(page: Page): Promise<void> {
+  if (!SLIDESHOW_MODE) return;
+
+  // Show a subtle "Press → to continue" hint
+  await page.evaluate(() => {
+    let hint = document.getElementById('pw-slideshow-hint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.id = 'pw-slideshow-hint';
+      hint.setAttribute('aria-hidden', 'true');
+      hint.setAttribute('inert', '');
+      hint.style.cssText = `
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        background: rgba(15, 23, 42, 0.9);
+        color: #94a3b8;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        z-index: 9999999;
+        pointer-events: none;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      `;
+      document.body.appendChild(hint);
+    }
+    hint.textContent = 'Press → to continue';
+    hint.style.display = 'block';
+  });
+
+  // Wait for right arrow key
+  await page.evaluate(() => {
+    return new Promise<void>((resolve) => {
+      const handler = (e: KeyboardEvent) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault();
+          document.removeEventListener('keydown', handler);
+          const hint = document.getElementById('pw-slideshow-hint');
+          if (hint) hint.style.display = 'none';
+          resolve();
+        }
+      };
+      document.addEventListener('keydown', handler);
+    });
+  });
 }
 
 // Enhanced visual styles for demo mode - cohesive blue/cyan theme
@@ -247,63 +297,7 @@ const DEMO_STYLES = `
     color: #cbd5e1;
   }
 
-  /* Nested actions - fixed height container to prevent reflow */
-  .pw-step-actions {
-    margin-left: 68px;
-    margin-top: 4px;
-    padding-left: 12px;
-    border-left: 2px solid rgba(6, 182, 212, 0.3);
-    overflow: hidden;
-  }
-
-  .pw-step-action {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 3px 0;
-    font-size: 12px;
-    color: #64748b;
-  }
-
-  .pw-step-action.completed {
-    color: #64748b;
-  }
-
-  .pw-step-action.current {
-    color: #22d3ee;
-  }
-
-  .pw-step-action.pending {
-    color: #475569;
-    opacity: 0.6;
-  }
-
-  .pw-action-icon {
-    font-size: 11px;
-    width: 14px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .pw-action-check {
-    color: #22c55e;
-    font-size: 10px;
-    width: 14px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .pw-action-indicator {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #22d3ee;
-    box-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
-    animation: pw-dot-pulse 1s ease-in-out infinite;
-    flex-shrink: 0;
-    margin-left: 4px;
-    margin-right: 5px;
-  }
+  /* Sub-items removed - cleaner display with just Gherkin steps */
 `;
 
 const DEMO_INIT_SCRIPT = `
@@ -363,24 +357,7 @@ const DEMO_INIT_SCRIPT = `
       html += '<span class="pw-step-text">' + step.text + '</span>';
       html += '</div>';
 
-      // Render nested actions ONLY for the current active step (progressive disclosure)
-      if (isActive && step.actions && step.actions.length > 0) {
-        html += '<div class="pw-step-actions">';
-        for (let j = 0; j < step.actions.length; j++) {
-          const action = step.actions[j];
-          const actionClass = action.completed ? 'completed' : 'current';
-          html += '<div class="pw-step-action ' + actionClass + '">';
-          if (action.completed) {
-            html += '<span class="pw-action-check">✓</span>';
-          } else {
-            // Pulsing indicator for current action
-            html += '<span class="pw-action-indicator"></span>';
-          }
-          html += '<span>' + action.text + '</span>';
-          html += '</div>';
-        }
-        html += '</div>';
-      }
+      // Sub-items removed for cleaner display - just show Gherkin steps
 
       html += '</div>';
     }
@@ -561,7 +538,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
   try {
     // First scroll element into view and wait for scroll to settle
     await locator.scrollIntoViewIfNeeded({ timeout: DEMO_TIMEOUT });
-    await page.waitForTimeout(150); // Wait for smooth scroll to complete
+    await page.waitForTimeout(80); // Quick settle for scroll
 
     const box = await locator.boundingBox({ timeout: DEMO_TIMEOUT });
     if (box) {
@@ -576,7 +553,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
         ),
         new Promise((resolve) => setTimeout(resolve, DEMO_TIMEOUT)),
       ]);
-      await page.waitForTimeout(150); // Brief settle after cursor moves
+      await page.waitForTimeout(50); // Quick settle after cursor moves
     }
   } catch {}
 }
@@ -694,7 +671,7 @@ export const cursor = {
       return;
     }
     const label = await getElementLabel(locator);
-    const actionText = `Click "${label}"`;
+    const actionText = `by clicking "${label}"`;
     await showAction(page, "👆", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
@@ -702,7 +679,8 @@ export const cursor = {
     await locator.click();
     await successElement(page, locator);
     await completeAction(page, actionText);
-    // slowMo handles pacing, minimal extra delay
+    // In slideshow mode, wait for keypress after each action
+    await waitForKeypress(page);
   },
 
   /**
@@ -715,7 +693,7 @@ export const cursor = {
     }
     const label = await getElementLabel(locator);
     const displayValue = value.length > 25 ? value.slice(0, 25) + "…" : value;
-    const actionText = `Type "${displayValue}"`;
+    const actionText = `by typing "${displayValue}"`;
     await showAction(page, "⌨️", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
@@ -727,7 +705,8 @@ export const cursor = {
     await locator.pressSequentially(value, { delay: TYPE_DELAY });
     await successElement(page, locator);
     await completeAction(page, actionText);
-    // slowMo handles pacing, minimal extra delay
+    // In slideshow mode, wait for keypress after each action
+    await waitForKeypress(page);
   },
 
   /**
@@ -739,7 +718,7 @@ export const cursor = {
       return;
     }
     const label = await getElementLabel(locator);
-    const actionText = `Hover "${label}"`;
+    const actionText = `by hovering over "${label}"`;
     await showAction(page, "👀", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
@@ -802,8 +781,12 @@ export const story = {
         page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
         DEMO_TIMEOUT
       );
-      // Brief pause to let viewer read the step before actions begin
-      await page.waitForTimeout(400);
+      // In slideshow mode, wait for keypress; otherwise brief pause
+      if (SLIDESHOW_MODE) {
+        await waitForKeypress(page);
+      } else {
+        await page.waitForTimeout(400);
+      }
     } catch {}
   },
 
