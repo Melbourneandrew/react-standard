@@ -43,12 +43,6 @@ const DEMO_STYLES = `
     }
   }
 
-  /* Action complete flash - green */
-  @keyframes pw-complete {
-    0% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.9), 0 0 25px rgba(34, 197, 94, 0.6); }
-    100% { box-shadow: 0 0 0 0 transparent, 0 0 0 transparent; }
-  }
-
   /*
    * Highlight styles applied to page elements - kept minimal to avoid interference.
    * Only uses box-shadow which is purely visual and doesn't affect layout.
@@ -56,10 +50,6 @@ const DEMO_STYLES = `
    */
   .pw-highlight {
     box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4) !important;
-  }
-
-  .pw-success {
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8), 0 0 15px rgba(34, 197, 94, 0.5) !important;
   }
 
   /* Action banner - hidden, actions now nested in story panel */
@@ -72,24 +62,28 @@ const DEMO_STYLES = `
     50% { opacity: 0.6; transform: scale(0.8); }
   }
 
-  /* Test result overlay - subtle and professional */
+  /* Test result overlay - fades out page content */
   .pw-result-overlay {
     position: fixed;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999999;
+    z-index: 9999990; /* Backdrop layer - below story panel */
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    background: rgba(0, 0, 0, 0);
+    transition: opacity 0.4s ease, background 0.4s ease;
   }
 
   .pw-result-overlay.visible {
     opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
   }
 
   .pw-result-icon {
+    position: relative;
+    z-index: 9999999; /* Icon on top of everything */
     width: 80px;
     height: 80px;
     border-radius: 50%;
@@ -150,15 +144,15 @@ const DEMO_STYLES = `
     position: fixed;
     bottom: 16px;
     left: 16px;
-    width: 380px;
+    width: 440px;
     max-height: 50vh;
     overflow-y: auto;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%);
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: 20px 24px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 13px;
+    font-size: 15px;
     color: #e2e8f0;
     z-index: 9999998;
     pointer-events: none;
@@ -174,20 +168,20 @@ const DEMO_STYLES = `
   }
 
   .pw-story-feature {
-    font-size: 11px;
+    font-size: 12px;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(148, 163, 184, 0.15);
   }
 
   .pw-story-scenario {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: #f8fafc;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
   .pw-story-step {
@@ -198,6 +192,7 @@ const DEMO_STYLES = `
 
   .pw-story-step.active {
     opacity: 1;
+    font-weight: 600;
   }
 
   .pw-story-step.completed {
@@ -234,7 +229,7 @@ const DEMO_STYLES = `
 
   .pw-step-keyword {
     font-weight: 600;
-    width: 50px;
+    width: 55px;
     flex-shrink: 0;
   }
 
@@ -352,8 +347,6 @@ const DEMO_INIT_SCRIPT = `
     },
     success: (el) => {
       el.classList.remove('pw-highlight');
-      el.classList.add('pw-success');
-      setTimeout(() => el.classList.remove('pw-success'), 500);
     },
     showResult: (passed) => {
       // Keep story panel visible - don't hide it
@@ -680,12 +673,16 @@ export const cursor = {
 async function showTestResult(page: Page, passed: boolean) {
   if (!DEBUG_VISUAL) return;
   try {
+    // Pause before showing result - let user appreciate the final state
+    await page.waitForTimeout(800);
+
     await withTimeout(
       page.evaluate((p: boolean) => (window as any).__pwDemo?.showResult(p), passed),
       DEMO_TIMEOUT
     );
-    // Hold the result on screen - longer pause for final state appreciation
-    await page.waitForTimeout(passed ? 1500 : 2000);
+
+    // Hold the result on screen
+    await page.waitForTimeout(passed ? 1800 : 2500);
   } catch {}
 }
 
@@ -766,6 +763,19 @@ export const test = base.extend<{ page: Page }>({
     if (DEBUG_VISUAL) {
       const passed = testInfo.status === "passed" || testInfo.status === "skipped";
       await showTestResult(page, passed);
+    }
+
+    // Capture low-quality thumbnail for dashboard (after result overlay shown)
+    if (process.env.RECORD_VIDEO === "true" && testInfo.outputDir) {
+      try {
+        await page.screenshot({
+          path: `${testInfo.outputDir}/thumbnail.jpg`,
+          type: "jpeg",
+          quality: 30, // Low quality for fast loading
+        });
+      } catch {
+        // Screenshot may fail if page closed early
+      }
     }
   },
 });
