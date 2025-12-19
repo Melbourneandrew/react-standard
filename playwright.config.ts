@@ -94,32 +94,32 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // In visual debug mode, slow down and optionally arrange windows in a grid
-        ...(debugVisual && {
+        // Grid mode: arrange windows to fill the screen (works with or without DEBUG_VISUAL)
+        ...(gridMode && {
+          viewport: (() => {
+            const { windowWidth, windowHeight } = getGridDimensions();
+            return {
+              width: windowWidth - 20,
+              height: windowHeight - 100, // Account for browser chrome
+            };
+          })(),
+          launchOptions: {
+            // Slow down only in visual debug mode
+            ...(debugVisual && { slowMo: 100 }),
+            args: (() => {
+              const pos = getWindowPosition(workerIndex);
+              return [
+                `--window-position=${pos.x},${pos.y}`,
+                `--window-size=${pos.width},${pos.height}`,
+              ];
+            })(),
+          },
+        }),
+        // Non-grid visual debug mode: just slow down
+        ...(!gridMode && debugVisual && {
           launchOptions: {
             slowMo: 100,
-            // Grid mode: position windows to fill the screen
-            ...(gridMode && {
-              args: (() => {
-                const workerIndex = parseInt(process.env.TEST_PARALLEL_INDEX || "0", 10);
-                const pos = getWindowPosition(workerIndex);
-                return [
-                  `--window-position=${pos.x},${pos.y}`,
-                  `--window-size=${pos.width},${pos.height}`,
-                ];
-              })(),
-            }),
           },
-          // Grid mode: shrink viewport to fit window
-          ...(gridMode && {
-            viewport: (() => {
-              const { windowWidth, windowHeight } = getGridDimensions();
-              return {
-                width: windowWidth - 20,
-                height: windowHeight - 100, // Account for browser chrome
-              };
-            })(),
-          }),
         }),
       },
     },

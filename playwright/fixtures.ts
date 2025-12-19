@@ -1,6 +1,11 @@
 import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
+const GRID_WORKERS = parseInt(process.env.GRID_WORKERS || "0", 10);
+
+// Startup delay for grid mode - gives all browser windows time to appear
+// before any tests start running (creates synchronized start effect)
+const GRID_STARTUP_DELAY = GRID_WORKERS > 1 ? 2000 : 0;
 
 // Timeout wrapper to prevent demo effects from hanging tests
 const DEMO_TIMEOUT = 500;
@@ -33,19 +38,20 @@ const DEMO_STYLES = `
     100% { box-shadow: 0 0 0 0 transparent, 0 0 0 transparent; }
   }
 
+  /*
+   * Highlight styles applied to page elements - kept minimal to avoid interference.
+   * Only uses box-shadow which is purely visual and doesn't affect layout.
+   * No z-index changes, no outline changes, no position changes.
+   */
   .pw-highlight {
-    position: relative;
-    z-index: 10000;
-    outline: none !important;
-    animation: pw-glow 0.7s ease-in-out infinite !important;
-    border-radius: 6px !important;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4) !important;
   }
 
   .pw-success {
-    animation: pw-complete 0.4s ease-out forwards !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8), 0 0 15px rgba(34, 197, 94, 0.5) !important;
   }
 
-  /* Action banner - dark slate with cyan accent */
+  /* Action banner - karaoke style with history */
   .pw-action-banner {
     position: fixed;
     top: 16px;
@@ -53,10 +59,10 @@ const DEMO_STYLES = `
     transform: translateX(-50%);
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #e2e8f0;
-    padding: 12px 24px;
+    padding: 14px 20px;
     border-radius: 12px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     z-index: 999998;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
@@ -64,35 +70,70 @@ const DEMO_STYLES = `
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(16px);
     display: flex;
-    align-items: center;
-    gap: 12px;
-    white-space: nowrap;
+    flex-direction: column;
+    gap: 6px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.2s ease;
+    width: 320px;
   }
 
   .pw-action-banner.visible {
     opacity: 1;
   }
 
-  .pw-action-banner::before {
-    content: "";
+  /* Completed action row */
+  .pw-action-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pw-action-row.completed {
+    opacity: 0.5;
+    font-size: 12px;
+  }
+
+  .pw-action-row.current {
+    opacity: 1;
+    color: #22d3ee;
+  }
+
+  /* Status indicators */
+  .pw-action-status {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .pw-action-status.done {
+    color: #22c55e;
+  }
+
+  .pw-action-status.active {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: #06b6d4;
-    box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
-    animation: pw-dot-pulse 1.2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+    animation: pw-dot-pulse 1s ease-in-out infinite;
+    margin: 0 4px;
   }
 
   @keyframes pw-dot-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.85); }
+    50% { opacity: 0.6; transform: scale(0.8); }
   }
 
-  .pw-action-icon {
-    font-size: 15px;
+  .pw-action-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Test result overlay - subtle and professional */
@@ -173,29 +214,70 @@ const DEMO_INIT_SCRIPT = `
 (() => {
   if (window.__pwDemo) return;
 
-  // Create action banner - aria-hidden to avoid interfering with getByText queries
+  // Track action history for karaoke display
+  const actionHistory = [];
+  const MAX_HISTORY = 3;
+
+  // Create action banner - fully inert to avoid interfering with tests
   const banner = document.createElement('div');
   banner.className = 'pw-action-banner';
   banner.id = 'pw-action-banner';
   banner.setAttribute('aria-hidden', 'true');
-  banner.setAttribute('data-testid', 'pw-internal');
+  banner.setAttribute('inert', '');
+  banner.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(banner);
 
-  // Create result overlay - aria-hidden to avoid interfering with queries
+  // Create result overlay - fully inert to avoid interfering with tests
   const overlay = document.createElement('div');
   overlay.className = 'pw-result-overlay';
   overlay.id = 'pw-result-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  overlay.setAttribute('data-testid', 'pw-internal');
+  overlay.setAttribute('inert', '');
+  overlay.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(overlay);
+
+  // Render the action list
+  function renderActions(currentIcon, currentText) {
+    let html = '';
+
+    // Show completed actions (last few)
+    const historyToShow = actionHistory.slice(-MAX_HISTORY);
+    for (const action of historyToShow) {
+      html += '<div class="pw-action-row completed">' +
+        '<span class="pw-action-status done">✓</span>' +
+        '<span class="pw-action-text">' + action + '</span>' +
+      '</div>';
+    }
+
+    // Show current action
+    if (currentText) {
+      html += '<div class="pw-action-row current">' +
+        '<span class="pw-action-status active"></span>' +
+        '<span class="pw-action-text">' + currentIcon + ' ' + currentText + '</span>' +
+      '</div>';
+    }
+
+    banner.innerHTML = html;
+  }
 
   window.__pwDemo = {
     showAction: (icon, text) => {
-      banner.innerHTML = '<span class="pw-action-icon">' + icon + '</span>' + text;
+      renderActions(icon, text);
       banner.classList.add('visible');
+    },
+    completeAction: (text) => {
+      // Add to history when action completes
+      actionHistory.push(text);
+      // Keep history bounded
+      if (actionHistory.length > MAX_HISTORY + 2) {
+        actionHistory.shift();
+      }
     },
     hideAction: () => {
       banner.classList.remove('visible');
+    },
+    clearHistory: () => {
+      actionHistory.length = 0;
     },
     highlight: (el) => {
       el.classList.add('pw-highlight');
@@ -232,16 +314,20 @@ const CURSOR_SCRIPT = `
 (() => {
   if (window.__cursor) return;
 
-  // Cursor element - aria-hidden to avoid interfering with queries
+  // Cursor element - fully inert to avoid interfering with tests
   const cursor = document.createElement('div');
   cursor.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
   cursor.style.cssText = 'position:fixed;top:0;left:0;width:24px;height:24px;pointer-events:none;z-index:999999;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.4));';
   cursor.setAttribute('aria-hidden', 'true');
+  cursor.setAttribute('inert', '');
+  cursor.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(cursor);
 
   const ripple = document.createElement('div');
   ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.7) 0%,rgba(6,182,212,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
   ripple.setAttribute('aria-hidden', 'true');
+  ripple.setAttribute('inert', '');
+  ripple.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(ripple);
 
   let x = -100, y = -100;
@@ -386,6 +472,17 @@ async function showAction(page: Page, icon: string, text: string) {
   } catch {}
 }
 
+// Complete and hide action banner (adds to history)
+async function completeAction(page: Page, actionText: string) {
+  if (!DEBUG_VISUAL) return;
+  try {
+    await withTimeout(
+      page.evaluate((text: string) => (window as any).__pwDemo?.completeAction(text), actionText),
+      DEMO_TIMEOUT
+    );
+  } catch {}
+}
+
 // Hide action banner
 async function hideAction(page: Page) {
   if (!DEBUG_VISUAL) return;
@@ -434,12 +531,14 @@ export const cursor = {
       return;
     }
     const label = await getElementLabel(locator);
-    await showAction(page, "👆", `Click "${label}"`);
+    const actionText = `Click "${label}"`;
+    await showAction(page, "👆", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
     await animateClick(page);
     await locator.click();
     await successElement(page, locator);
+    await completeAction(page, actionText);
     await page.waitForTimeout(100);
     await hideAction(page);
   },
@@ -454,7 +553,8 @@ export const cursor = {
     }
     const label = await getElementLabel(locator);
     const displayValue = value.length > 25 ? value.slice(0, 25) + "…" : value;
-    await showAction(page, "⌨️", `Type in ${label}: "${displayValue}"`);
+    const actionText = `Type "${displayValue}"`;
+    await showAction(page, "⌨️", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
     await animateClick(page);
@@ -464,6 +564,7 @@ export const cursor = {
     // Use Playwright's built-in delay - no loop overhead
     await locator.pressSequentially(value, { delay: TYPE_DELAY });
     await successElement(page, locator);
+    await completeAction(page, actionText);
     await page.waitForTimeout(100);
     await hideAction(page);
   },
@@ -477,12 +578,14 @@ export const cursor = {
       return;
     }
     const label = await getElementLabel(locator);
-    await showAction(page, "👀", `Hover "${label}"`);
+    const actionText = `Hover "${label}"`;
+    await showAction(page, "👀", actionText);
     await highlightElement(page, locator);
     await animateCursorTo(page, locator);
     await locator.hover();
     await page.waitForTimeout(200);
     await successElement(page, locator);
+    await completeAction(page, actionText);
     await hideAction(page);
   },
 };
@@ -500,9 +603,18 @@ async function showTestResult(page: Page, passed: boolean) {
   } catch {}
 }
 
-// Test fixture - handles cursor injection and result overlay
+// Track if we've done the startup delay (only need once per worker)
+let hasStartupDelay = false;
+
+// Test fixture - handles cursor injection, startup sync, and result overlay
 export const test = base.extend<{ page: Page }>({
   page: async ({ page }, use, testInfo) => {
+    // Grid mode: wait at startup so all windows appear before tests run
+    if (GRID_STARTUP_DELAY > 0 && !hasStartupDelay) {
+      hasStartupDelay = true;
+      await new Promise((r) => setTimeout(r, GRID_STARTUP_DELAY));
+    }
+
     if (DEBUG_VISUAL) {
       page.on("load", () => injectCursor(page));
       const origGoto = page.goto.bind(page);
