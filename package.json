@@ -16,7 +16,7 @@
     "test:demo": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true playwright test --headed --workers=1 --grep '@demo'",
     "test:demo:fast": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true FAST_MODE=true playwright test --headed --workers=1 --grep '@demo'",
     "test:demo:slow": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true SLOW_MO=600 playwright test --headed --workers=1 --grep '@demo'",
-    "test:demo:grid": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true GRID_WORKERS=8 playwright test --headed --workers=8",
+    "test:demo:grid": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true GRID_WORKERS=8 playwright test --headed --workers=8 --grep-invert 'error-handling'",
     "test:dashboard": "node playwright/artifacts/dashboard.js"
   },
   "dependencies": {

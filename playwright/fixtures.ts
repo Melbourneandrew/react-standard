@@ -8,8 +8,8 @@ const FAST_MODE = process.env.FAST_MODE === "true";
 // In grid mode, hide the story and action panels (too much visual noise)
 const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
 
-// Timing multiplier: FAST_MODE=0.3x, SLOW_MO=3x, normal=1x
-const TIMING_MULTIPLIER = FAST_MODE ? 0.3 : SLOW_MO > 0 ? Math.max(1, SLOW_MO / 200) : 1;
+// Timing multiplier: FAST_MODE=0.3x, SLOW_MO=3x, normal=1.5x (smoother)
+const TIMING_MULTIPLIER = FAST_MODE ? 0.3 : SLOW_MO > 0 ? Math.max(1, SLOW_MO / 200) : 1.5;
 
 // Focus toggle only in slow mode - dims page when reading story, hides story when acting
 const FOCUS_TOGGLE = SLOW_MO > 0 && SHOW_PANELS;
@@ -52,9 +52,8 @@ const DEMO_STYLES = `
   }
 
   /*
-   * Highlight styles applied to page elements - kept minimal to avoid interference.
-   * Only uses box-shadow which is purely visual and doesn't affect layout.
-   * No z-index changes, no outline changes, no position changes.
+   * Highlight styles applied to page elements.
+   * Just box-shadow - dims with the rest of the page when backdrop is visible.
    */
   .pw-highlight {
     box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4) !important;
@@ -80,41 +79,46 @@ const DEMO_STYLES = `
     z-index: 9999990; /* Backdrop layer - below story panel */
     pointer-events: none;
     opacity: 0;
-    background: rgba(0, 0, 0, 0);
-    transition: opacity 0.4s ease, background 0.4s ease;
+    background: rgba(0, 0, 0, 0.7); /* Always set, just fade opacity */
+    transition: opacity 0.4s ease;
+    transform: translate3d(0, 0, 0); /* Force GPU layer */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .pw-result-overlay.visible {
     opacity: 1;
-    background: rgba(0, 0, 0, 0.7);
   }
 
   .pw-result-icon {
     position: relative;
     z-index: 9999999;
-    width: 100px;
-    height: 100px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     animation: pw-result-fade 0.3s ease-out forwards;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    transform: translate3d(0, 0, 0); /* Force GPU layer */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .pw-result-icon.pass {
     background: #22c55e;
-    box-shadow: 0 8px 32px rgba(34, 197, 94, 0.35);
+    box-shadow: 0 6px 24px rgba(34, 197, 94, 0.35);
   }
 
   .pw-result-icon.fail {
     background: #ef4444;
-    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.35);
   }
 
   .pw-result-icon svg {
-    width: 50px;
-    height: 50px;
+    width: 36px;
+    height: 36px;
     stroke: white;
     stroke-width: 3;
     fill: none;
@@ -309,6 +313,7 @@ const DEMO_INIT_SCRIPT = `
   let storySteps = []; // Each step has: { keyword, text, actions: [{icon, text, completed}] }
   let currentStepIndex = -1;
   let currentAction = null; // { icon, text }
+  let currentHighlightedElement = null; // Track currently highlighted element
 
   // Render unified story panel with nested actions
   function renderStory() {
@@ -375,14 +380,27 @@ const DEMO_INIT_SCRIPT = `
       renderStory();
     },
     highlight: (el) => {
+      currentHighlightedElement = el;
       el.classList.add('pw-highlight');
       el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     },
     unhighlight: (el) => {
       el.classList.remove('pw-highlight');
+      if (currentHighlightedElement === el) {
+        currentHighlightedElement = null;
+      }
+    },
+    unhighlightCurrent: () => {
+      if (currentHighlightedElement) {
+        currentHighlightedElement.classList.remove('pw-highlight');
+        currentHighlightedElement = null;
+      }
     },
     success: (el) => {
       el.classList.remove('pw-highlight');
+      if (currentHighlightedElement === el) {
+        currentHighlightedElement = null;
+      }
     },
     showResult: (passed) => {
       // Keep story panel visible - don't hide it
@@ -450,14 +468,20 @@ const CURSOR_SCRIPT = `
 (() => {
   if (window.__cursor) return;
 
+  // Cursor SVGs - sized for demo visibility
+  const pointerSvg = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
+  const textSvg = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M8 4h8M8 20h8" stroke="#000" stroke-width="3" stroke-linecap="round"/><path d="M12 4v16M8 4h8M8 20h8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
   // Cursor element - fully inert to avoid interfering with tests
   const cursor = document.createElement('div');
-  cursor.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
-  cursor.style.cssText = 'position:fixed;top:0;left:0;width:24px;height:24px;pointer-events:none;z-index:999999;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.4));';
+  cursor.innerHTML = pointerSvg;
+  cursor.style.cssText = 'position:fixed;top:0;left:0;width:36px;height:36px;pointer-events:none;z-index:999999;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.4));transform-origin:top left;';
   cursor.setAttribute('aria-hidden', 'true');
   cursor.setAttribute('inert', '');
   cursor.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(cursor);
+
+  let currentCursorType = 'pointer';
 
   const ripple = document.createElement('div');
   ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.7) 0%,rgba(6,182,212,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
@@ -470,6 +494,35 @@ const CURSOR_SCRIPT = `
   cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
   window.__cursor = {
+    setCursor: (type, withBounce) => {
+      if (type === currentCursorType) return;
+      currentCursorType = type;
+      if (withBounce) {
+        // Quick bounce: squeeze and swap
+        const startTime = performance.now();
+        function animateSwap() {
+          const elapsed = performance.now() - startTime;
+          const p = Math.min(elapsed / 120, 1);
+          const scale = 1 - Math.sin(p * Math.PI) * 0.3;
+          cursor.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+          if (p >= 0.5 && cursor.innerHTML !== (type === 'text' ? textSvg : pointerSvg)) {
+            cursor.innerHTML = type === 'text' ? textSvg : pointerSvg;
+          }
+          if (p < 1) requestAnimationFrame(animateSwap);
+          else cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+        }
+        requestAnimationFrame(animateSwap);
+      } else {
+        cursor.innerHTML = type === 'text' ? textSvg : pointerSvg;
+      }
+    },
+    // Pending cursor change - will be applied during next click animation
+    pendingCursor: null,
+    queueCursorChange: (type) => {
+      if (type !== currentCursorType) {
+        window.__cursor.pendingCursor = type;
+      }
+    },
     move: (tx, ty, ms) => {
       return new Promise(resolve => {
         const sx = x, sy = y;
@@ -505,8 +558,9 @@ const CURSOR_SCRIPT = `
       ripple.style.transform = 'scale(2.5)';
       ripple.style.opacity = '0';
 
-      // Cursor bounce/squeeze effect
+      // Cursor bounce/squeeze effect with cursor swap at squeeze point
       const bounceStart = performance.now();
+      let swapped = false;
       function bounce() {
         const elapsed = performance.now() - bounceStart;
         const p = Math.min(elapsed / 150, 1);
@@ -515,6 +569,13 @@ const CURSOR_SCRIPT = `
         const scaleY = 1 - Math.sin(p * Math.PI) * 0.2;
         const offsetY = Math.sin(p * Math.PI) * 3;
         cursor.style.transform = 'translate(' + x + 'px,' + (y + offsetY) + 'px) scale(' + scaleX + ',' + scaleY + ')';
+        // Swap cursor at the squeeze point (halfway through)
+        if (!swapped && p >= 0.5 && window.__cursor.pendingCursor) {
+          currentCursorType = window.__cursor.pendingCursor;
+          cursor.innerHTML = currentCursorType === 'text' ? textSvg : pointerSvg;
+          window.__cursor.pendingCursor = null;
+          swapped = true;
+        }
         if (p < 1) requestAnimationFrame(bounce);
         else cursor.style.transform = 'translate(' + x + 'px,' + y + 'px)';
       }
@@ -530,6 +591,24 @@ async function injectCursor(page: Page) {
     await withTimeout(page.addStyleTag({ content: DEMO_STYLES }), DEMO_TIMEOUT);
     await withTimeout(page.evaluate(CURSOR_SCRIPT), DEMO_TIMEOUT);
     await withTimeout(page.evaluate(DEMO_INIT_SCRIPT), DEMO_TIMEOUT);
+  } catch {}
+}
+
+// Set cursor type based on element
+async function setCursorType(page: Page, locator: Locator, forceType?: "pointer" | "text") {
+  if (!DEBUG_VISUAL) return;
+  try {
+    if (forceType) {
+      await page.evaluate((t: string) => (window as any).__cursor?.setCursor(t), forceType);
+    } else {
+      // Auto-detect based on element type
+      const isTextInput = await locator.evaluate((el: Element) => {
+        return el instanceof HTMLInputElement &&
+          ["text", "search", "email", "password", "url", "tel", "number"].includes(el.type) ||
+          el instanceof HTMLTextAreaElement;
+      });
+      await page.evaluate((t: string) => (window as any).__cursor?.setCursor(t), isTextInput ? "text" : "pointer");
+    }
   } catch {}
 }
 
@@ -666,26 +745,29 @@ async function focusReset(page: Page) {
   } catch {}
 }
 
-// Highlight element
+// Highlight element - atomically unhighlights previous and highlights new
 async function highlightElement(page: Page, locator: Locator) {
   if (!DEBUG_VISUAL) return;
   try {
+    // Atomic transition: unhighlight old + highlight new in same call
     await withTimeout(
-      locator.evaluate((el: Element) => (window as any).__pwDemo?.highlight(el)),
+      locator.evaluate((el: Element) => {
+        const demo = (window as any).__pwDemo;
+        if (demo) {
+          demo.unhighlightCurrent?.();
+          demo.highlight(el);
+        }
+      }),
       DEMO_TIMEOUT
     );
   } catch {}
 }
 
-// Success flash on element
-async function successElement(page: Page, locator: Locator) {
-  if (!DEBUG_VISUAL) return;
-  try {
-    await withTimeout(
-      locator.evaluate((el: Element) => (window as any).__pwDemo?.success(el)),
-      DEMO_TIMEOUT
-    );
-  } catch {}
+// Success element - no longer removes highlight immediately
+// The highlight persists until the next element is highlighted (handled by highlightElement)
+async function successElement(_page: Page, _locator: Locator) {
+  // No-op: highlight stays until next highlightElement call removes it
+  // This creates natural focus transitions between elements
 }
 
 /**
@@ -701,11 +783,6 @@ export const cursor = {
     if (!DEBUG_VISUAL) {
       await locator.click();
       return;
-    }
-    // In slow mode, switch focus from story to page
-    if (FOCUS_TOGGLE) {
-      await focusPage(page);
-      await page.waitForTimeout(400);
     }
 
     let actionText = "";
@@ -732,11 +809,6 @@ export const cursor = {
       await locator.fill(value);
       return;
     }
-    // In slow mode, switch focus from story to page
-    if (FOCUS_TOGGLE) {
-      await focusPage(page);
-      await page.waitForTimeout(400);
-    }
 
     let actionText = "";
     if (!FAST_MODE) {
@@ -747,6 +819,8 @@ export const cursor = {
     }
     await animateCursorTo(page, locator);
     await highlightElement(page, locator); // Highlight after cursor arrives
+    // Queue cursor change to happen during click animation
+    await page.evaluate(() => (window as any).__cursor?.queueCursorChange?.('text'));
     await animateClick(page);
     await locator.click();
     await page.keyboard.press("Meta+A");
@@ -757,6 +831,8 @@ export const cursor = {
     } else {
       await locator.pressSequentially(value, { delay: TYPE_DELAY });
     }
+    // Switch back to pointer after typing with a bounce
+    await page.evaluate(() => (window as any).__cursor?.setCursor?.('pointer', true));
     await successElement(page, locator);
     if (!FAST_MODE) {
       await completeAction(page, actionText);
@@ -770,11 +846,6 @@ export const cursor = {
     if (!DEBUG_VISUAL) {
       await locator.hover();
       return;
-    }
-    // In slow mode, switch focus from story to page
-    if (FOCUS_TOGGLE) {
-      await focusPage(page);
-      await page.waitForTimeout(400);
     }
 
     let actionText = "";
@@ -799,8 +870,14 @@ export const cursor = {
 async function showTestResult(page: Page, passed: boolean) {
   if (!DEBUG_VISUAL) return;
   try {
+    // Clear any remaining highlight before showing result
+    await withTimeout(
+      page.evaluate(() => (window as any).__pwDemo?.unhighlightCurrent?.()),
+      DEMO_TIMEOUT
+    );
+
     // Pause before showing result - let user appreciate the final state
-    await page.waitForTimeout(FAST_MODE ? 200 : 800);
+    await page.waitForTimeout(FAST_MODE ? 150 : 500);
 
     await withTimeout(
       page.evaluate((p: boolean) => (window as any).__pwDemo?.showResult(p), passed),
@@ -808,7 +885,7 @@ async function showTestResult(page: Page, passed: boolean) {
     );
 
     // Hold the result on screen
-    await page.waitForTimeout(FAST_MODE ? 600 : passed ? 1800 : 2500);
+    await page.waitForTimeout(FAST_MODE ? 400 : passed ? 1200 : 1800);
   } catch {}
 }
 
@@ -878,6 +955,10 @@ export const story = {
         if (!FAST_MODE) {
           await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
         }
+
+        // After reading, undim the page (cursor actions will re-dim if needed)
+        await focusPage(page);
+        if (FOCUS_TOGGLE) await page.waitForTimeout(300);
       }
 
       // Note: focusPage() is called by cursor actions, not here
