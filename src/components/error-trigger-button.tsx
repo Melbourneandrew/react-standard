@@ -25,22 +25,25 @@ export function ErrorTriggerButton({
   variant = "outline",
   ...buttonProps
 }: ErrorTriggerButtonProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={variant}
-          onClick={onTrigger}
-          className={cn(
-            "border-destructive text-destructive hover:bg-destructive/10",
-            className,
-          )}
-          {...buttonProps}
-        >
-          Error
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
-    </Tooltip>
-  );
+  // Disabled: tooltip was blocking Playwright clicks in grid mode demos
+  return null;
+
+  // return (
+  //   <Tooltip>
+  //     <TooltipTrigger asChild>
+  //       <Button
+  //         variant={variant}
+  //         onClick={onTrigger}
+  //         className={cn(
+  //           "border-destructive text-destructive hover:bg-destructive/10",
+  //           className,
+  //         )}
+  //         {...buttonProps}
+  //       >
+  //         Error
+  //       </Button>
+  //     </TooltipTrigger>
+  //     <TooltipContent side="bottom">{tooltip}</TooltipContent>
+  //   </Tooltip>
+  // );
 }

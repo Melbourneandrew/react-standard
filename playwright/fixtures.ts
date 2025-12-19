@@ -13,6 +13,18 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined>
 
 // Enhanced visual styles for demo mode - cohesive blue/cyan theme
 const DEMO_STYLES = `
+  /* Hide Next.js dev mode indicator */
+  [data-nextjs-dialog-overlay],
+  [data-nextjs-dialog],
+  nextjs-portal,
+  #__next-build-indicator,
+  [data-nextjs-toast],
+  [class*="nextjs-toast"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
   /* Highlight glow - cyan/teal theme */
   @keyframes pw-glow {
     0%, 100% {
@@ -395,6 +407,10 @@ async function injectCursor(page: Page) {
 async function animateCursorTo(page: Page, locator: Locator) {
   if (!DEBUG_VISUAL) return;
   try {
+    // First scroll element into view and wait for scroll to settle
+    await locator.scrollIntoViewIfNeeded({ timeout: DEMO_TIMEOUT });
+    await page.waitForTimeout(150); // Wait for smooth scroll to complete
+
     const box = await locator.boundingBox({ timeout: DEMO_TIMEOUT });
     if (box) {
       const x = box.x + box.width / 2;
