@@ -193,7 +193,7 @@ const DEMO_STYLES = `
   .pw-story-step {
     padding: 6px 0;
     opacity: 0.35;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.25s ease;
   }
 
   .pw-story-step.active {
@@ -214,6 +214,24 @@ const DEMO_STYLES = `
     color: #22c55e;
   }
 
+  /* Fixed-width indicator column prevents layout shift */
+  .pw-step-indicator-col {
+    width: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 5px;
+  }
+
+  .pw-step-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #06b6d4;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+    animation: pw-dot-pulse 1s ease-in-out infinite;
+  }
+
   .pw-step-keyword {
     font-weight: 600;
     width: 50px;
@@ -229,24 +247,13 @@ const DEMO_STYLES = `
     color: #cbd5e1;
   }
 
-  .pw-step-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #06b6d4;
-    margin-top: 6px;
-    margin-right: 2px;
-    flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
-    animation: pw-dot-pulse 1s ease-in-out infinite;
-  }
-
-  /* Nested actions under each step */
+  /* Nested actions - fixed height container to prevent reflow */
   .pw-step-actions {
-    margin-left: 58px;
+    margin-left: 68px;
     margin-top: 4px;
     padding-left: 12px;
     border-left: 2px solid rgba(6, 182, 212, 0.3);
+    overflow: hidden;
   }
 
   .pw-step-action {
@@ -255,14 +262,7 @@ const DEMO_STYLES = `
     gap: 8px;
     padding: 3px 0;
     font-size: 12px;
-    color: #94a3b8;
-    opacity: 0;
-    transform: translateX(-5px);
-    animation: pw-action-appear 0.2s ease forwards;
-  }
-
-  @keyframes pw-action-appear {
-    to { opacity: 1; transform: translateX(0); }
+    color: #64748b;
   }
 
   .pw-step-action.completed {
@@ -273,13 +273,36 @@ const DEMO_STYLES = `
     color: #22d3ee;
   }
 
+  .pw-step-action.pending {
+    color: #475569;
+    opacity: 0.6;
+  }
+
   .pw-action-icon {
     font-size: 11px;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
   }
 
   .pw-action-check {
     color: #22c55e;
     font-size: 10px;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .pw-action-indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #22d3ee;
+    box-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
+    animation: pw-dot-pulse 1s ease-in-out infinite;
+    flex-shrink: 0;
+    margin-left: 4px;
+    margin-right: 5px;
   }
 `;
 
@@ -330,9 +353,12 @@ const DEMO_INIT_SCRIPT = `
 
       html += '<div class="pw-story-step ' + stepClass + '">';
       html += '<div class="pw-step-header">';
+      // Fixed-width indicator column prevents layout shift
+      html += '<div class="pw-step-indicator-col">';
       if (isActive) {
         html += '<div class="pw-step-indicator"></div>';
       }
+      html += '</div>';
       html += '<span class="pw-step-keyword ' + keywordClass + '">' + step.keyword + '</span>';
       html += '<span class="pw-step-text">' + step.text + '</span>';
       html += '</div>';
@@ -347,7 +373,8 @@ const DEMO_INIT_SCRIPT = `
           if (action.completed) {
             html += '<span class="pw-action-check">✓</span>';
           } else {
-            html += '<span class="pw-action-icon">' + action.icon + '</span>';
+            // Pulsing indicator for current action
+            html += '<span class="pw-action-indicator"></span>';
           }
           html += '<span>' + action.text + '</span>';
           html += '</div>';
@@ -402,8 +429,7 @@ const DEMO_INIT_SCRIPT = `
       setTimeout(() => el.classList.remove('pw-success'), 500);
     },
     showResult: (passed) => {
-      // Hide story panel
-      storyPanel.classList.remove('visible');
+      // Keep story panel visible - don't hide it
 
       // Checkmark SVG for pass, X for fail
       const checkSvg = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
@@ -733,8 +759,8 @@ async function showTestResult(page: Page, passed: boolean) {
       page.evaluate((p: boolean) => (window as any).__pwDemo?.showResult(p), passed),
       DEMO_TIMEOUT
     );
-    // Hold the result on screen
-    await page.waitForTimeout(passed ? 800 : 1200);
+    // Hold the result on screen - longer pause for final state appreciation
+    await page.waitForTimeout(passed ? 1500 : 2000);
   } catch {}
 }
 
