@@ -1,4 +1,4 @@
-import { cursor, expect, test } from "../fixtures";
+import { cursor, expect, story, test } from "../fixtures";
 
 test.describe("Item Edit", () => {
   test.beforeEach(async ({ page }) => {
@@ -28,22 +28,33 @@ test.describe("Item Edit", () => {
   });
 
   test("should update item successfully @demo", async ({ page }) => {
+    // Set up the Gherkin story
+    await story.setup(page, "Item Edit", "Update item successfully", [
+      { keyword: "Given", text: "I am viewing items in a collection" },
+      { keyword: "When", text: "I click the edit button on an item" },
+      { keyword: "And", text: "I change the item name" },
+      { keyword: "And", text: "I click save" },
+      { keyword: "Then", text: "the item should be updated" },
+    ]);
+
+    await story.step(page); // Given - already on collection page
+
     const firstItem = page.locator(".rounded-lg.border").first();
+
+    await story.step(page); // When - click edit
     await cursor.click(page, firstItem.locator("button:has(svg.lucide-pencil)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
-    // Change the name
+    await story.step(page); // And - change name
     const uniqueName = `Updated ${Date.now()}`;
     await cursor.fill(page, page.getByLabel("Name"), uniqueName);
 
-    // Save and wait for the mutation to complete
+    await story.step(page); // And - save
     await cursor.click(page, page.getByRole("button", { name: /save/i }));
     await page.waitForLoadState("networkidle");
 
-    // Dialog should close
+    await story.step(page); // Then - verify
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
-
-    // Item should have updated name
     await expect(firstItem.locator("h3")).toHaveText(uniqueName, {
       timeout: 10000,
     });

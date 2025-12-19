@@ -17,6 +17,7 @@
     "test:headed": "playwright test --headed",
     "test:headed:debug": "DEBUG_VISUAL=true playwright test --headed --workers=1",
     "test:headed:grid": "DEBUG_VISUAL=true GRID_WORKERS=8 playwright test --headed --workers=8",
+    "playwright:demo0": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true SLOW_MO=1000 playwright test --headed --workers=1 --grep '@demo'",
     "playwright:demo1": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true playwright test --headed --workers=1 --grep '@demo'",
     "playwright:demo2": "RUN_EPOCH=$(date +%s) DEBUG_VISUAL=true RECORD_VIDEO=true GRID_WORKERS=8 playwright test --headed --workers=8",
     "playwright:demo3": "RUN_EPOCH=$(date +%s) RECORD_VIDEO=true GRID_WORKERS=8 playwright test --headed --workers=8",

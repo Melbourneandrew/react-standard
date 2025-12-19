@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const debugVisual = process.env.DEBUG_VISUAL === "true";
 const recordVideo = process.env.RECORD_VIDEO === "true";
+// SLOW_MO: milliseconds to wait between actions (default 100 for debug, 0 otherwise)
+const slowMo = parseInt(process.env.SLOW_MO || (debugVisual ? "100" : "0"), 10);
 
 // Generate epoch timestamp for video recordings - shared across all workers in a run
 // Use RUN_EPOCH env var if set (for consistent naming across workers), otherwise generate
@@ -104,8 +106,8 @@ export default defineConfig({
             };
           })(),
           launchOptions: {
-            // Slow down only in visual debug mode
-            ...(debugVisual && { slowMo: 100 }),
+            // Slow down in visual debug mode
+            ...(slowMo > 0 && { slowMo }),
             args: (() => {
               const pos = getWindowPosition(workerIndex);
               return [
@@ -116,9 +118,9 @@ export default defineConfig({
           },
         }),
         // Non-grid visual debug mode: just slow down
-        ...(!gridMode && debugVisual && {
+        ...(!gridMode && slowMo > 0 && {
           launchOptions: {
-            slowMo: 100,
+            slowMo,
           },
         }),
       },

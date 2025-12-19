@@ -1,4 +1,4 @@
-import { test, expect, cursor } from "../fixtures";
+import { test, expect, cursor, story } from "../fixtures";
 
 test.describe("Items Search", () => {
   test.beforeEach(async ({ page }) => {
@@ -9,12 +9,20 @@ test.describe("Items Search", () => {
   });
 
   test("should filter items when searching @demo", async ({ page }) => {
-    await cursor.fill(page, page.getByPlaceholder("Search..."), "Phoenix");
+    // Set up the Gherkin story
+    await story.setup(page, "Items Search", "Filter items when searching", [
+      { keyword: "Given", text: "I am viewing items in a collection" },
+      { keyword: "When", text: 'I type "Phoenix" in the search box' },
+      { keyword: "Then", text: "I should see filtered results" },
+    ]);
 
-    // Wait for debounce and URL update
+    await story.step(page); // Given - already on collection page
+
+    await story.step(page); // When - search
+    await cursor.fill(page, page.getByPlaceholder("Search..."), "Phoenix");
     await expect(page).toHaveURL(/query=Phoenix/, { timeout: 5000 });
 
-    // Items should be filtered
+    await story.step(page); // Then - verify
     await expect(page.getByText(/\d+ items?/)).toBeVisible();
   });
 

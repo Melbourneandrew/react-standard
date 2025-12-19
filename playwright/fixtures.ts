@@ -1,6 +1,10 @@
 import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
+const GRID_MODE = parseInt(process.env.GRID_WORKERS || "0", 10) > 1;
+
+// In grid mode, hide the story and action panels (too much visual noise)
+const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
 
 // Timeout wrapper to prevent demo effects from hanging tests
 const DEMO_TIMEOUT = 500;
@@ -58,89 +62,14 @@ const DEMO_STYLES = `
     box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.8), 0 0 15px rgba(34, 197, 94, 0.5) !important;
   }
 
-  /* Action banner - karaoke style with history */
+  /* Action banner - hidden, actions now nested in story panel */
   .pw-action-banner {
-    position: fixed;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: #e2e8f0;
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999998;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(6, 182, 212, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(16px);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    width: 320px;
-  }
-
-  .pw-action-banner.visible {
-    opacity: 1;
-  }
-
-  /* Completed action row */
-  .pw-action-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .pw-action-row.completed {
-    opacity: 0.5;
-    font-size: 12px;
-  }
-
-  .pw-action-row.current {
-    opacity: 1;
-    color: #22d3ee;
-  }
-
-  /* Status indicators */
-  .pw-action-status {
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .pw-action-status.done {
-    color: #22c55e;
-  }
-
-  .pw-action-status.active {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #06b6d4;
-    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
-    animation: pw-dot-pulse 1s ease-in-out infinite;
-    margin: 0 4px;
+    display: none !important;
   }
 
   @keyframes pw-dot-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.6; transform: scale(0.8); }
-  }
-
-  .pw-action-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   /* Test result overlay - subtle and professional */
@@ -215,24 +144,148 @@ const DEMO_STYLES = `
   @keyframes pw-xmark {
     to { stroke-dashoffset: 0; }
   }
+
+  /* Unified Story Panel - shows BDD context with nested actions (bottom-left) */
+  .pw-story-panel {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    width: 380px;
+    max-height: 50vh;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    color: #e2e8f0;
+    z-index: 9999998;
+    pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .pw-story-panel.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .pw-story-feature {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .pw-story-scenario {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f8fafc;
+    margin-bottom: 12px;
+  }
+
+  .pw-story-step {
+    padding: 6px 0;
+    opacity: 0.35;
+    transition: opacity 0.2s ease;
+  }
+
+  .pw-story-step.active {
+    opacity: 1;
+  }
+
+  .pw-story-step.completed {
+    opacity: 0.6;
+  }
+
+  .pw-step-header {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pw-story-step.completed .pw-step-keyword {
+    color: #22c55e;
+  }
+
+  .pw-step-keyword {
+    font-weight: 600;
+    width: 50px;
+    flex-shrink: 0;
+  }
+
+  .pw-step-keyword.given { color: #a78bfa; }
+  .pw-step-keyword.when { color: #fbbf24; }
+  .pw-step-keyword.then { color: #22d3ee; }
+  .pw-step-keyword.and { color: #94a3b8; }
+
+  .pw-step-text {
+    color: #cbd5e1;
+  }
+
+  .pw-step-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #06b6d4;
+    margin-top: 6px;
+    margin-right: 2px;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+    animation: pw-dot-pulse 1s ease-in-out infinite;
+  }
+
+  /* Nested actions under each step */
+  .pw-step-actions {
+    margin-left: 58px;
+    margin-top: 4px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(6, 182, 212, 0.3);
+  }
+
+  .pw-step-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 12px;
+    color: #94a3b8;
+    opacity: 0;
+    transform: translateX(-5px);
+    animation: pw-action-appear 0.2s ease forwards;
+  }
+
+  @keyframes pw-action-appear {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .pw-step-action.completed {
+    color: #64748b;
+  }
+
+  .pw-step-action.current {
+    color: #22d3ee;
+  }
+
+  .pw-action-icon {
+    font-size: 11px;
+  }
+
+  .pw-action-check {
+    color: #22c55e;
+    font-size: 10px;
+  }
 `;
 
 const DEMO_INIT_SCRIPT = `
 (() => {
   if (window.__pwDemo) return;
-
-  // Track action history for karaoke display
-  const actionHistory = [];
-  const MAX_HISTORY = 3;
-
-  // Create action banner - fully inert to avoid interfering with tests
-  const banner = document.createElement('div');
-  banner.className = 'pw-action-banner';
-  banner.id = 'pw-action-banner';
-  banner.setAttribute('aria-hidden', 'true');
-  banner.setAttribute('inert', '');
-  banner.setAttribute('data-pw-internal', 'true');
-  document.body.appendChild(banner);
 
   // Create result overlay - fully inert to avoid interfering with tests
   const overlay = document.createElement('div');
@@ -243,48 +296,98 @@ const DEMO_INIT_SCRIPT = `
   overlay.setAttribute('data-pw-internal', 'true');
   document.body.appendChild(overlay);
 
-  // Render the action list
-  function renderActions(currentIcon, currentText) {
+  // Create unified story panel - shows Gherkin context with nested actions
+  const storyPanel = document.createElement('div');
+  storyPanel.className = 'pw-story-panel';
+  storyPanel.id = 'pw-story-panel';
+  storyPanel.setAttribute('aria-hidden', 'true');
+  storyPanel.setAttribute('inert', '');
+  storyPanel.setAttribute('data-pw-internal', 'true');
+  document.body.appendChild(storyPanel);
+
+  // Story state
+  let storyFeature = '';
+  let storyScenario = '';
+  let storySteps = []; // Each step has: { keyword, text, actions: [{icon, text, completed}] }
+  let currentStepIndex = -1;
+  let currentAction = null; // { icon, text }
+
+  // Render unified story panel with nested actions
+  function renderStory() {
     let html = '';
-
-    // Show completed actions (last few)
-    const historyToShow = actionHistory.slice(-MAX_HISTORY);
-    for (const action of historyToShow) {
-      html += '<div class="pw-action-row completed">' +
-        '<span class="pw-action-status done">✓</span>' +
-        '<span class="pw-action-text">' + action + '</span>' +
-      '</div>';
+    if (storyFeature) {
+      html += '<div class="pw-story-feature">' + storyFeature + '</div>';
     }
-
-    // Show current action
-    if (currentText) {
-      html += '<div class="pw-action-row current">' +
-        '<span class="pw-action-status active"></span>' +
-        '<span class="pw-action-text">' + currentIcon + ' ' + currentText + '</span>' +
-      '</div>';
+    if (storyScenario) {
+      html += '<div class="pw-story-scenario">' + storyScenario + '</div>';
     }
+    for (let i = 0; i < storySteps.length; i++) {
+      const step = storySteps[i];
+      const isActive = i === currentStepIndex;
+      const isCompleted = i < currentStepIndex;
+      const stepClass = isActive ? 'active' : (isCompleted ? 'completed' : '');
+      const keywordClass = step.keyword.toLowerCase();
 
-    banner.innerHTML = html;
+      html += '<div class="pw-story-step ' + stepClass + '">';
+      html += '<div class="pw-step-header">';
+      if (isActive) {
+        html += '<div class="pw-step-indicator"></div>';
+      }
+      html += '<span class="pw-step-keyword ' + keywordClass + '">' + step.keyword + '</span>';
+      html += '<span class="pw-step-text">' + step.text + '</span>';
+      html += '</div>';
+
+      // Render nested actions ONLY for the current active step (progressive disclosure)
+      if (isActive && step.actions && step.actions.length > 0) {
+        html += '<div class="pw-step-actions">';
+        for (let j = 0; j < step.actions.length; j++) {
+          const action = step.actions[j];
+          const actionClass = action.completed ? 'completed' : 'current';
+          html += '<div class="pw-step-action ' + actionClass + '">';
+          if (action.completed) {
+            html += '<span class="pw-action-check">✓</span>';
+          } else {
+            html += '<span class="pw-action-icon">' + action.icon + '</span>';
+          }
+          html += '<span>' + action.text + '</span>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      html += '</div>';
+    }
+    storyPanel.innerHTML = html;
   }
 
   window.__pwDemo = {
     showAction: (icon, text) => {
-      renderActions(icon, text);
-      banner.classList.add('visible');
+      // Add action to current step
+      if (currentStepIndex >= 0 && currentStepIndex < storySteps.length) {
+        if (!storySteps[currentStepIndex].actions) {
+          storySteps[currentStepIndex].actions = [];
+        }
+        currentAction = { icon, text, completed: false };
+        storySteps[currentStepIndex].actions.push(currentAction);
+        renderStory();
+      }
     },
     completeAction: (text) => {
-      // Add to history when action completes
-      actionHistory.push(text);
-      // Keep history bounded
-      if (actionHistory.length > MAX_HISTORY + 2) {
-        actionHistory.shift();
+      // Mark current action as completed
+      if (currentAction && currentAction.text === text) {
+        currentAction.completed = true;
+        renderStory();
       }
     },
     hideAction: () => {
-      banner.classList.remove('visible');
+      // No-op, actions stay visible under their step
     },
     clearHistory: () => {
-      actionHistory.length = 0;
+      // Clear actions from all steps
+      for (const step of storySteps) {
+        step.actions = [];
+      }
+      renderStory();
     },
     highlight: (el) => {
       el.classList.add('pw-highlight');
@@ -299,8 +402,8 @@ const DEMO_INIT_SCRIPT = `
       setTimeout(() => el.classList.remove('pw-success'), 500);
     },
     showResult: (passed) => {
-      // Hide action banner
-      banner.classList.remove('visible');
+      // Hide story panel
+      storyPanel.classList.remove('visible');
 
       // Checkmark SVG for pass, X for fail
       const checkSvg = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
@@ -311,6 +414,29 @@ const DEMO_INIT_SCRIPT = `
     },
     hideResult: () => {
       overlay.classList.remove('visible');
+    },
+    // Story panel methods for Gherkin display
+    setStory: (feature, scenario, steps) => {
+      storyFeature = feature || '';
+      storyScenario = scenario || '';
+      storySteps = (steps || []).map(s => ({ ...s, actions: [] }));
+      currentStepIndex = -1;
+      currentAction = null;
+      renderStory();
+      storyPanel.classList.add('visible');
+    },
+    advanceStep: () => {
+      currentStepIndex++;
+      currentAction = null;
+      renderStory();
+    },
+    hideStory: () => {
+      storyPanel.classList.remove('visible');
+      storySteps = [];
+      storyFeature = '';
+      storyScenario = '';
+      currentStepIndex = -1;
+      currentAction = null;
     }
   };
 })();
@@ -471,7 +597,7 @@ async function getElementLabel(locator: Locator): Promise<string> {
 
 // Show action banner
 async function showAction(page: Page, icon: string, text: string) {
-  if (!DEBUG_VISUAL) return;
+  if (!SHOW_PANELS) return; // Hide in grid mode
   try {
     await withTimeout(
       page.evaluate(
@@ -485,7 +611,7 @@ async function showAction(page: Page, icon: string, text: string) {
 
 // Complete and hide action banner (adds to history)
 async function completeAction(page: Page, actionText: string) {
-  if (!DEBUG_VISUAL) return;
+  if (!SHOW_PANELS) return; // Hide in grid mode
   try {
     await withTimeout(
       page.evaluate((text: string) => (window as any).__pwDemo?.completeAction(text), actionText),
@@ -496,7 +622,7 @@ async function completeAction(page: Page, actionText: string) {
 
 // Hide action banner
 async function hideAction(page: Page) {
-  if (!DEBUG_VISUAL) return;
+  if (!SHOW_PANELS) return; // Hide in grid mode
   try {
     await withTimeout(
       page.evaluate(() => (window as any).__pwDemo?.hideAction()),
@@ -613,6 +739,63 @@ async function showTestResult(page: Page, passed: boolean) {
     await page.waitForTimeout(passed ? 800 : 1200);
   } catch {}
 }
+
+/**
+ * Story helper for displaying Gherkin-style BDD context.
+ * Shows the feature, scenario, and current step in a side panel.
+ * NOTE: Call setup() AFTER page.goto() so the demo scripts are injected.
+ * Only shown in demo1 (single window), hidden in grid mode (demo2).
+ */
+export const story = {
+  /**
+   * Set up the story panel with feature, scenario, and steps
+   */
+  setup: async (
+    page: Page,
+    feature: string,
+    scenario: string,
+    steps: Array<{ keyword: string; text: string }>
+  ) => {
+    if (!SHOW_PANELS) return; // Hide in grid mode
+    try {
+      await withTimeout(
+        page.evaluate(
+          ({ f, s, st }) => (window as any).__pwDemo?.setStory(f, s, st),
+          { f: feature, s: scenario, st: steps }
+        ),
+        DEMO_TIMEOUT
+      );
+    } catch {}
+  },
+
+  /**
+   * Advance to the next step (call before each Given/When/Then action)
+   */
+  step: async (page: Page) => {
+    if (!SHOW_PANELS) return; // Hide in grid mode
+    try {
+      await withTimeout(
+        page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
+        DEMO_TIMEOUT
+      );
+      // Longer pause to show the step before actions appear (storytelling)
+      await page.waitForTimeout(600);
+    } catch {}
+  },
+
+  /**
+   * Hide the story panel
+   */
+  hide: async (page: Page) => {
+    if (!SHOW_PANELS) return; // Hide in grid mode
+    try {
+      await withTimeout(
+        page.evaluate(() => (window as any).__pwDemo?.hideStory()),
+        DEMO_TIMEOUT
+      );
+    } catch {}
+  },
+};
 
 // Test fixture - handles cursor injection and result overlay
 export const test = base.extend<{ page: Page }>({

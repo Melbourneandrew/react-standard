@@ -1,4 +1,4 @@
-import { cursor, expect, test } from "../fixtures";
+import { cursor, expect, story, test } from "../fixtures";
 
 test.describe("Item Delete", () => {
   test.beforeEach(async ({ page }) => {
@@ -26,19 +26,28 @@ test.describe("Item Delete", () => {
   });
 
   test("should delete item when confirmed @demo", async ({ page }) => {
+    // Set up the Gherkin story
+    await story.setup(page, "Item Delete", "Delete item when confirmed", [
+      { keyword: "Given", text: "I am viewing items in a collection" },
+      { keyword: "When", text: "I click delete on an item" },
+      { keyword: "And", text: "I confirm the deletion" },
+      { keyword: "Then", text: "the item should be removed" },
+    ]);
+
+    await story.step(page); // Given - already on collection page
+
     const firstItem = page.locator(".rounded-lg.border").first();
     const itemName = await firstItem.locator("h3").textContent();
 
+    await story.step(page); // When - click delete
     await cursor.click(page, firstItem.locator("button:has(svg.lucide-trash-2)"));
     await expect(page.getByRole("dialog")).toBeVisible();
 
-    // Confirm deletion
+    await story.step(page); // And - confirm
     await cursor.click(page, page.getByRole("button", { name: /delete/i }));
-
-    // Dialog should close
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
-    // Search for deleted item to verify it's gone
+    await story.step(page); // Then - verify gone
     await cursor.fill(page, page.getByPlaceholder("Search..."), itemName!);
     await expect(page).toHaveURL(/query=/, { timeout: 5000 });
     await page.waitForTimeout(500);

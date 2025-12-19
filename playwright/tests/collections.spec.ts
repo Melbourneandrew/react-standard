@@ -1,4 +1,4 @@
-import { cursor, expect, test } from "../fixtures";
+import { cursor, expect, story, test } from "../fixtures";
 
 test.describe("Collection Selection", () => {
   test("should show welcome page with collection dropdown", async ({
@@ -34,19 +34,25 @@ test.describe("Collection Selection", () => {
   }) => {
     await page.goto("/");
 
-    // Click the card's dropdown
-    await cursor.click(page, page.getByRole("combobox").nth(1));
+    // Set up the Gherkin story (must be after page.goto)
+    await story.setup(page, "Collection Selection", "Navigate to collection", [
+      { keyword: "Given", text: "I am on the home page" },
+      { keyword: "When", text: "I click the collection dropdown" },
+      { keyword: "And", text: "I select a collection" },
+      { keyword: "Then", text: "I should see the collection's items page" },
+    ]);
 
-    // Wait for options to load
+    await story.step(page); // Given - already on home page
+
+    await story.step(page); // When
+    await cursor.click(page, page.getByRole("combobox").nth(1));
     await expect(page.getByRole("listbox")).toBeVisible({ timeout: 10000 });
 
-    // Select the first collection
+    await story.step(page); // And
     await cursor.click(page, page.getByRole("option").first());
 
-    // Should navigate to collection page
+    await story.step(page); // Then
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);
-
-    // Should see items heading
     await expect(page.getByText("Items", { exact: true })).toBeVisible();
   });
 
