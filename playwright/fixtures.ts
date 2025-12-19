@@ -550,7 +550,7 @@ async function animateCursorTo(page: Page, locator: Locator) {
         ),
         new Promise((resolve) => setTimeout(resolve, DEMO_TIMEOUT)),
       ]);
-      await page.waitForTimeout(220);
+      await page.waitForTimeout(150); // Brief settle after cursor moves
     }
   } catch {}
 }
@@ -676,8 +676,7 @@ export const cursor = {
     await locator.click();
     await successElement(page, locator);
     await completeAction(page, actionText);
-    await page.waitForTimeout(100);
-    await hideAction(page);
+    // slowMo handles pacing, minimal extra delay
   },
 
   /**
@@ -702,8 +701,7 @@ export const cursor = {
     await locator.pressSequentially(value, { delay: TYPE_DELAY });
     await successElement(page, locator);
     await completeAction(page, actionText);
-    await page.waitForTimeout(100);
-    await hideAction(page);
+    // slowMo handles pacing, minimal extra delay
   },
 
   /**
@@ -778,8 +776,8 @@ export const story = {
         page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
         DEMO_TIMEOUT
       );
-      // Longer pause to show the step before actions appear (storytelling)
-      await page.waitForTimeout(600);
+      // Brief pause to let viewer read the step before actions begin
+      await page.waitForTimeout(400);
     } catch {}
   },
 
