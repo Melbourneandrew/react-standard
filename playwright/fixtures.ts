@@ -2,9 +2,16 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 
 const DEBUG_VISUAL = process.env.DEBUG_VISUAL === "true";
 const GRID_MODE = parseInt(process.env.GRID_WORKERS || "0", 10) > 1;
+const SLOW_MO = parseInt(process.env.SLOW_MO || "0", 10);
 
 // In grid mode, hide the story and action panels (too much visual noise)
 const SHOW_PANELS = DEBUG_VISUAL && !GRID_MODE;
+
+// Timing multiplier for slow mode (SLOW_MO=600 → 3x slower animations)
+const TIMING_MULTIPLIER = SLOW_MO > 0 ? Math.max(1, SLOW_MO / 200) : 1;
+
+// Focus toggle only in slow mode - dims page when reading story, hides story when acting
+const FOCUS_TOGGLE = SLOW_MO > 0 && SHOW_PANELS;
 
 // Timeout wrapper to prevent demo effects from hanging tests
 const DEMO_TIMEOUT = 500;
@@ -83,9 +90,9 @@ const DEMO_STYLES = `
 
   .pw-result-icon {
     position: relative;
-    z-index: 9999999; /* Icon on top of everything */
-    width: 80px;
-    height: 80px;
+    z-index: 9999999;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -105,8 +112,8 @@ const DEMO_STYLES = `
   }
 
   .pw-result-icon svg {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     stroke: white;
     stroke-width: 3;
     fill: none;
@@ -158,13 +165,13 @@ const DEMO_STYLES = `
     pointer-events: none;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     opacity: 0;
-    transform: translateX(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: scale(0.98);
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
   .pw-story-panel.visible {
     opacity: 1;
-    transform: translateX(0);
+    transform: scale(1);
   }
 
   .pw-story-feature {
@@ -223,8 +230,7 @@ const DEMO_STYLES = `
     height: 6px;
     border-radius: 50%;
     background: #06b6d4;
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
-    animation: pw-dot-pulse 1s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
   }
 
   .pw-step-keyword {
@@ -243,11 +249,40 @@ const DEMO_STYLES = `
   }
 
   /* Sub-items removed - cleaner display with just Gherkin steps */
+
+  /* Focus toggle for slow mode */
+  .pw-dim-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999985; /* Below story panel and cursor */
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .pw-dim-overlay.visible {
+    opacity: 1;
+  }
+
+  .pw-story-panel.focus-hidden {
+    opacity: 0 !important;
+    transform: scale(0.98) !important;
+  }
 `;
 
 const DEMO_INIT_SCRIPT = `
 (() => {
   if (window.__pwDemo) return;
+
+  // Create dim overlay for slow mode focus toggle
+  const dimOverlay = document.createElement('div');
+  dimOverlay.className = 'pw-dim-overlay';
+  dimOverlay.id = 'pw-dim-overlay';
+  dimOverlay.setAttribute('aria-hidden', 'true');
+  dimOverlay.setAttribute('inert', '');
+  dimOverlay.setAttribute('data-pw-internal', 'true');
+  document.body.appendChild(dimOverlay);
 
   // Create result overlay - fully inert to avoid interfering with tests
   const overlay = document.createElement('div');
@@ -362,7 +397,7 @@ const DEMO_INIT_SCRIPT = `
       overlay.classList.remove('visible');
     },
     // Story panel methods for Gherkin display
-    setStory: (feature, scenario, steps) => {
+    setStory: (feature, scenario, steps, startHidden) => {
       storyFeature = feature || '';
       storyScenario = scenario || '';
       storySteps = (steps || []).map(s => ({ ...s, actions: [] }));
@@ -370,12 +405,17 @@ const DEMO_INIT_SCRIPT = `
       currentAction = null;
       renderStory();
       storyPanel.classList.add('visible');
+      // In slow mode, start hidden - focusStory will reveal it with the backdrop
+      if (startHidden) {
+        storyPanel.classList.add('focus-hidden');
+      }
     },
     advanceStep: () => {
       currentStepIndex++;
       currentAction = null;
       renderStory();
     },
+    getCurrentStepIndex: () => currentStepIndex,
     hideStory: () => {
       storyPanel.classList.remove('visible');
       storySteps = [];
@@ -383,6 +423,22 @@ const DEMO_INIT_SCRIPT = `
       storyScenario = '';
       currentStepIndex = -1;
       currentAction = null;
+    },
+    // Focus toggle for slow mode
+    focusStory: () => {
+      // Dim page content, ensure story is visible
+      dimOverlay.classList.add('visible');
+      storyPanel.classList.remove('focus-hidden');
+    },
+    focusPage: () => {
+      // Restore page, hide story
+      dimOverlay.classList.remove('visible');
+      storyPanel.classList.add('focus-hidden');
+    },
+    focusReset: () => {
+      // Reset to normal state
+      dimOverlay.classList.remove('visible');
+      storyPanel.classList.remove('focus-hidden');
     }
   };
 })();
@@ -487,14 +543,15 @@ async function animateCursorTo(page: Page, locator: Locator) {
     if (box) {
       const x = box.x + box.width / 2;
       const y = box.y + box.height / 2;
+      const moveDuration = Math.round(200 * TIMING_MULTIPLIER);
       await Promise.race([
         page.evaluate(
-          async (coords: [number, number]) => {
-            await (window as any).__cursor?.move(coords[0], coords[1], 200);
+          async ([cx, cy, ms]: [number, number, number]) => {
+            await (window as any).__cursor?.move(cx, cy, ms);
           },
-          [x, y] as [number, number]
+          [x, y, moveDuration] as [number, number, number]
         ),
-        new Promise((resolve) => setTimeout(resolve, DEMO_TIMEOUT)),
+        new Promise((resolve) => setTimeout(resolve, DEMO_TIMEOUT + moveDuration)),
       ]);
       await page.waitForTimeout(50); // Quick settle after cursor moves
     }
@@ -512,8 +569,8 @@ async function animateClick(page: Page) {
   } catch {}
 }
 
-// Use Playwright's built-in delay - much more efficient than manual loops
-const TYPE_DELAY = 10; // ms per character when DEBUG_VISUAL is on
+// Use Playwright's built-in delay - scales with SLOW_MO for narrated demos
+const TYPE_DELAY = Math.round(10 * TIMING_MULTIPLIER); // ms per character
 
 // Helper to get a readable label for an element
 async function getElementLabel(locator: Locator): Promise<string> {
@@ -577,6 +634,37 @@ async function hideAction(page: Page) {
   } catch {}
 }
 
+// Focus toggle helpers (slow mode only)
+async function focusStory(page: Page) {
+  if (!FOCUS_TOGGLE) return;
+  try {
+    await withTimeout(
+      page.evaluate(() => (window as any).__pwDemo?.focusStory()),
+      DEMO_TIMEOUT
+    );
+  } catch {}
+}
+
+async function focusPage(page: Page) {
+  if (!FOCUS_TOGGLE) return;
+  try {
+    await withTimeout(
+      page.evaluate(() => (window as any).__pwDemo?.focusPage()),
+      DEMO_TIMEOUT
+    );
+  } catch {}
+}
+
+async function focusReset(page: Page) {
+  if (!FOCUS_TOGGLE) return;
+  try {
+    await withTimeout(
+      page.evaluate(() => (window as any).__pwDemo?.focusReset()),
+      DEMO_TIMEOUT
+    );
+  } catch {}
+}
+
 // Highlight element
 async function highlightElement(page: Page, locator: Locator) {
   if (!DEBUG_VISUAL) return;
@@ -613,11 +701,15 @@ export const cursor = {
       await locator.click();
       return;
     }
+    // In slow mode, switch focus from story to page
+    await focusPage(page);
+    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+
     const label = await getElementLabel(locator);
     const actionText = `by clicking "${label}"`;
     await showAction(page, "👆", actionText);
-    await highlightElement(page, locator);
     await animateCursorTo(page, locator);
+    await highlightElement(page, locator); // Highlight after cursor arrives
     await animateClick(page);
     await locator.click();
     await successElement(page, locator);
@@ -632,12 +724,16 @@ export const cursor = {
       await locator.fill(value);
       return;
     }
+    // In slow mode, switch focus from story to page
+    await focusPage(page);
+    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+
     const label = await getElementLabel(locator);
     const displayValue = value.length > 25 ? value.slice(0, 25) + "…" : value;
     const actionText = `by typing "${displayValue}"`;
     await showAction(page, "⌨️", actionText);
-    await highlightElement(page, locator);
     await animateCursorTo(page, locator);
+    await highlightElement(page, locator); // Highlight after cursor arrives
     await animateClick(page);
     await locator.click();
     await page.keyboard.press("Meta+A");
@@ -656,13 +752,17 @@ export const cursor = {
       await locator.hover();
       return;
     }
+    // In slow mode, switch focus from story to page
+    await focusPage(page);
+    if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+
     const label = await getElementLabel(locator);
     const actionText = `by hovering over "${label}"`;
     await showAction(page, "👀", actionText);
-    await highlightElement(page, locator);
     await animateCursorTo(page, locator);
+    await highlightElement(page, locator); // Highlight after cursor arrives
     await locator.hover();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(Math.round(200 * TIMING_MULTIPLIER));
     await successElement(page, locator);
     await completeAction(page, actionText);
     await hideAction(page);
@@ -706,8 +806,8 @@ export const story = {
     try {
       await withTimeout(
         page.evaluate(
-          ({ f, s, st }) => (window as any).__pwDemo?.setStory(f, s, st),
-          { f: feature, s: scenario, st: steps }
+          ({ f, s, st, h }) => (window as any).__pwDemo?.setStory(f, s, st, h),
+          { f: feature, s: scenario, st: steps, h: FOCUS_TOGGLE }
         ),
         DEMO_TIMEOUT
       );
@@ -720,12 +820,38 @@ export const story = {
   step: async (page: Page) => {
     if (!SHOW_PANELS) return; // Hide in grid mode
     try {
-      await withTimeout(
-        page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
-        DEMO_TIMEOUT
+      // Check if this is the first step (Given) - no animation needed
+      const isFirstStep = await page.evaluate(
+        () => (window as any).__pwDemo?.getCurrentStepIndex?.() === -1
       );
-      // Brief pause to read the step
-      await page.waitForTimeout(400);
+
+      if (isFirstStep) {
+        // First step (Given): show story + backdrop together, then advance
+        await focusStory(page);
+        await withTimeout(
+          page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
+          DEMO_TIMEOUT
+        );
+        await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+      } else {
+        // Subsequent steps: do focus toggle for narrative effect
+        await focusStory(page);
+        if (FOCUS_TOGGLE) await page.waitForTimeout(400);
+
+        // Brief pause to see current state before advancing
+        if (FOCUS_TOGGLE) await page.waitForTimeout(300);
+
+        // Advance to next step
+        await withTimeout(
+          page.evaluate(() => (window as any).__pwDemo?.advanceStep()),
+          DEMO_TIMEOUT
+        );
+
+        // Pause to read the new step
+        await page.waitForTimeout(Math.round(500 * TIMING_MULTIPLIER));
+      }
+
+      // Note: focusPage() is called by cursor actions, not here
     } catch {}
   },
 
@@ -761,6 +887,11 @@ export const test = base.extend<{ page: Page }>({
 
     // Show pass/fail result overlay
     if (DEBUG_VISUAL) {
+      // In slow mode, hide the story panel entirely at the end
+      if (FOCUS_TOGGLE) {
+        await story.hide(page);
+      }
+      await focusReset(page);
       const passed = testInfo.status === "passed" || testInfo.status === "skipped";
       await showTestResult(page, passed);
     }
