@@ -16,6 +16,7 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:headed:debug": "DEBUG_VISUAL=true playwright test --headed --workers=1",
+    "test:headed:grid": "DEBUG_VISUAL=true GRID_WORKERS=8 playwright test --headed --workers=8",
     "test:record:macos": "./playwright/macos-record.sh --all",
     "test:record:macos:first": "./playwright/macos-record.sh",
     "test:record:ffmpeg": "./playwright/ffmpeg-record.sh --all",
