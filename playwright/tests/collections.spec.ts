@@ -47,7 +47,7 @@ test.describe("Collection Selection", () => {
     await expect(page).toHaveURL(/\/collections\/coll-\d+/);
 
     // Should see items heading
-    await expect(page.getByText("Items")).toBeVisible();
+    await expect(page.getByText("Items", { exact: true })).toBeVisible();
   });
 
   test("should be able to switch between collections", async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe("Collection Selection", () => {
     await page.goto("/collections/coll-1");
 
     // Wait for page to load
-    await expect(page.getByText("Items")).toBeVisible();
+    await expect(page.getByText("Items", { exact: true })).toBeVisible();
 
     // Wait for items to load
     await expect(page.locator(".animate-spin")).not.toBeVisible({

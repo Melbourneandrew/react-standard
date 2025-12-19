@@ -95,7 +95,7 @@ const DEMO_STYLES = `
     font-size: 15px;
   }
 
-  /* Test result overlay */
+  /* Test result overlay - subtle and professional */
   .pw-result-overlay {
     position: fixed;
     inset: 0;
@@ -105,7 +105,7 @@ const DEMO_STYLES = `
     z-index: 9999999;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
   }
 
   .pw-result-overlay.visible {
@@ -113,29 +113,29 @@ const DEMO_STYLES = `
   }
 
   .pw-result-icon {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: pw-result-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    animation: pw-result-fade 0.3s ease-out forwards;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 
   .pw-result-icon.pass {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.4), 0 0 80px rgba(34, 197, 94, 0.3);
+    background: #22c55e;
+    box-shadow: 0 8px 32px rgba(34, 197, 94, 0.35);
   }
 
   .pw-result-icon.fail {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    box-shadow: 0 20px 60px rgba(239, 68, 68, 0.4), 0 0 80px rgba(239, 68, 68, 0.3);
+    background: #ef4444;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.35);
   }
 
   .pw-result-icon svg {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     stroke: white;
     stroke-width: 3;
     fill: none;
@@ -146,18 +146,17 @@ const DEMO_STYLES = `
   .pw-result-icon.pass svg {
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
-    animation: pw-checkmark 0.4s ease-out 0.2s forwards;
+    animation: pw-checkmark 0.35s ease-out 0.1s forwards;
   }
 
   .pw-result-icon.fail svg {
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
-    animation: pw-xmark 0.3s ease-out 0.2s forwards;
+    animation: pw-xmark 0.25s ease-out 0.1s forwards;
   }
 
-  @keyframes pw-result-pop {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.1); }
+  @keyframes pw-result-fade {
+    0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
   }
 
@@ -174,16 +173,20 @@ const DEMO_INIT_SCRIPT = `
 (() => {
   if (window.__pwDemo) return;
 
-  // Create action banner
+  // Create action banner - aria-hidden to avoid interfering with getByText queries
   const banner = document.createElement('div');
   banner.className = 'pw-action-banner';
   banner.id = 'pw-action-banner';
+  banner.setAttribute('aria-hidden', 'true');
+  banner.setAttribute('data-testid', 'pw-internal');
   document.body.appendChild(banner);
 
-  // Create result overlay
+  // Create result overlay - aria-hidden to avoid interfering with queries
   const overlay = document.createElement('div');
   overlay.className = 'pw-result-overlay';
   overlay.id = 'pw-result-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.setAttribute('data-testid', 'pw-internal');
   document.body.appendChild(overlay);
 
   window.__pwDemo = {
@@ -229,13 +232,16 @@ const CURSOR_SCRIPT = `
 (() => {
   if (window.__cursor) return;
 
+  // Cursor element - aria-hidden to avoid interfering with queries
   const cursor = document.createElement('div');
   cursor.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.48 0 .72-.58.38-.92L6.35 2.85a.5.5 0 0 0-.85.36Z" fill="#000" stroke="#fff" stroke-width="1.5"/></svg>';
   cursor.style.cssText = 'position:fixed;top:0;left:0;width:24px;height:24px;pointer-events:none;z-index:999999;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.4));';
+  cursor.setAttribute('aria-hidden', 'true');
   document.body.appendChild(cursor);
 
   const ripple = document.createElement('div');
   ripple.style.cssText = 'position:fixed;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.7) 0%,rgba(6,182,212,0) 70%);pointer-events:none;z-index:2147483647;transform:scale(0.01);opacity:0;';
+  ripple.setAttribute('aria-hidden', 'true');
   document.body.appendChild(ripple);
 
   let x = -100, y = -100;
