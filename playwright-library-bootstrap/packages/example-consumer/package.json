@@ -1,0 +1,15 @@
+{
+  "name": "example-consumer",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'No dev server - this is a test consumer'",
+    "test": "playwright test",
+    "test:demo": "DEBUG_VISUAL=true RECORD_VIDEO=true playwright test --headed",
+    "test:demo:slow": "DEBUG_VISUAL=true RECORD_VIDEO=true SLOW_MO=600 playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@8090-inc/playwright-visual": "file:../core"
+  }
+}

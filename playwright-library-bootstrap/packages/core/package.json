@@ -1,0 +1,57 @@
+{
+  "name": "@8090-inc/playwright-visual",
+  "version": "0.0.0",
+  "description": "Visual testing infrastructure for Playwright with animated cursors, BDD story panels, and video recording",
+  "private": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./config": {
+      "import": "./dist/config.mjs",
+      "require": "./dist/config.js",
+      "types": "./dist/config.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/8090-inc/playwright-visual.git"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "playwright",
+    "testing",
+    "visual",
+    "e2e",
+    "bdd",
+    "cursor",
+    "video"
+  ],
+  "author": "8090-inc",
+  "license": "MIT",
+  "peerDependencies": {
+    "@playwright/test": ">=1.40.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
