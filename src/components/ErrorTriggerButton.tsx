@@ -33,7 +33,7 @@ export function ErrorTriggerButton({
           onClick={onTrigger}
           className={cn(
             "border-destructive text-destructive hover:bg-destructive/10",
-            className
+            className,
           )}
           {...buttonProps}
         >

@@ -27,7 +27,7 @@ export function CollectionsSelectionDropdown() {
     {},
     {
       enabled: isOpen, // Only fetch when dropdown is open
-    }
+    },
   );
 
   const collections = data?.collections || [];
@@ -48,10 +48,10 @@ export function CollectionsSelectionDropdown() {
       <SelectContent className="bg-white">
         {isLoadingCollections ? (
           <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
           </div>
         ) : collections.length === 0 ? (
-          <div className="py-4 text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground py-4 text-center text-sm">
             No collections found
           </div>
         ) : (

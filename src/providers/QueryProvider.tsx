@@ -50,7 +50,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             retry: false,
           },
         },
-      })
+      }),
   );
 
   return (

@@ -31,10 +31,10 @@ export function addMockItem(item: Item): void {
 export function updateMockItem(
   itemId: string,
   collectionId: string,
-  updates: Partial<Item>
+  updates: Partial<Item>,
 ): Item | null {
   const itemIndex = mockItems.findIndex(
-    (item) => item.id === itemId && item.collection_id === collectionId
+    (item) => item.id === itemId && item.collection_id === collectionId,
   );
 
   if (itemIndex === -1) {
@@ -55,10 +55,10 @@ export function updateMockItem(
  */
 export function deleteMockItem(
   itemId: string,
-  collectionId: string
+  collectionId: string,
 ): Item | null {
   const itemIndex = mockItems.findIndex(
-    (item) => item.id === itemId && item.collection_id === collectionId
+    (item) => item.id === itemId && item.collection_id === collectionId,
   );
 
   if (itemIndex === -1) {
@@ -75,9 +75,9 @@ export function deleteMockItem(
  */
 export function findMockItem(
   itemId: string,
-  collectionId: string
+  collectionId: string,
 ): Item | undefined {
   return mockItems.find(
-    (item) => item.id === itemId && item.collection_id === collectionId
+    (item) => item.id === itemId && item.collection_id === collectionId,
   );
 }

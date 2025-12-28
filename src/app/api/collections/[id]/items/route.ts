@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // Filter items by collection id
     const mockItems = getMockItems();
     let filteredItems = mockItems.filter(
-      (item) => item.collection_id === collectionId
+      (item) => item.collection_id === collectionId,
     );
 
     // Filter by query (search in name and description)
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       filteredItems = filteredItems.filter(
         (item) =>
           item.name.toLowerCase().includes(lowerQuery) ||
-          item.description?.toLowerCase().includes(lowerQuery)
+          item.description?.toLowerCase().includes(lowerQuery),
       );
     }
 
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     console.error("Error fetching items:", error);
     return NextResponse.json(
       { error: "Failed to fetch items" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Generate a new ID (find the max ID and increment)
     const mockItems = getMockItems();
     const collectionItems = mockItems.filter(
-      (item) => item.collection_id === collectionId
+      (item) => item.collection_id === collectionId,
     );
     const maxId = collectionItems.reduce((max, item) => {
       const itemId = parseInt(item.id, 10);
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     console.error("Error creating item:", error);
     return NextResponse.json(
       { error: "Failed to create item" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

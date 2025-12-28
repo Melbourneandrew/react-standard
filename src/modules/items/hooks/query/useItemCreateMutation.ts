@@ -47,7 +47,7 @@ export function useItemCreateMutation(): UseItemCreateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { createItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {

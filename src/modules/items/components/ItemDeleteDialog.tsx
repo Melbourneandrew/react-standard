@@ -27,10 +27,7 @@ interface ItemDeleteDialogProps {
  * Optimistic Updates: Item is removed from UI immediately. The mutation handles
  * cache invalidation automatically - no manual refetch callbacks needed.
  */
-export function ItemDeleteDialog({
-  item,
-  onClose,
-}: ItemDeleteDialogProps) {
+export function ItemDeleteDialog({ item, onClose }: ItemDeleteDialogProps) {
   const { deleteItemAsync, isDeletingItem } = useItemDeleteMutation();
 
   const handleDelete = async () => {
@@ -68,7 +65,7 @@ export function ItemDeleteDialog({
         {item && (
           <>
             <div className="p-6 pt-0">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Are you sure you want to delete <strong>{item.name}</strong>?
                 This action cannot be undone.
               </p>
@@ -92,7 +89,7 @@ export function ItemDeleteDialog({
               >
                 {isDeletingItem ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Deleting...
                   </>
                 ) : (

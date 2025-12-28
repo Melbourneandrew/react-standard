@@ -29,7 +29,7 @@ export function useItemsApi() {
    */
   const searchItemsApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>
+      params: ApiRequestParams<{ collectionId: string }, ItemSearchParams>,
     ): Promise<ItemSearchResponse> => {
       const { routeParams, queryParams = {} } = params;
       const { collectionId } = routeParams;
@@ -46,10 +46,10 @@ export function useItemsApi() {
         "GET",
         `/api/collections/${collectionId}/items${
           queryString ? `?${queryString}` : ""
-        }`
+        }`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -58,17 +58,17 @@ export function useItemsApi() {
    */
   const fetchItemApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>
+      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
     ): Promise<Item> => {
       const { routeParams } = params;
       const { collectionId, itemId } = routeParams;
 
       return await callApi<Item>(
         "GET",
-        `/api/collections/${collectionId}/items/${itemId}`
+        `/api/collections/${collectionId}/items/${itemId}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -81,7 +81,7 @@ export function useItemsApi() {
         { collectionId: string; itemId: string },
         NoQueryParams,
         Partial<Item>
-      >
+      >,
     ): Promise<Item> => {
       const { routeParams, bodyParams } = params;
       const { collectionId, itemId } = routeParams;
@@ -89,10 +89,10 @@ export function useItemsApi() {
       return await callApi<Item>(
         "PATCH",
         `/api/collections/${collectionId}/items/${itemId}`,
-        bodyParams
+        bodyParams,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -105,7 +105,7 @@ export function useItemsApi() {
         { collectionId: string },
         NoQueryParams,
         { name: string; description?: string }
-      >
+      >,
     ): Promise<Item> => {
       const { routeParams, bodyParams } = params;
       const { collectionId } = routeParams;
@@ -113,10 +113,10 @@ export function useItemsApi() {
       return await callApi<Item>(
         "POST",
         `/api/collections/${collectionId}/items`,
-        bodyParams
+        bodyParams,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   /**
@@ -125,17 +125,17 @@ export function useItemsApi() {
    */
   const deleteItemApi = useCallback(
     async (
-      params: ApiRequestParams<{ collectionId: string; itemId: string }>
+      params: ApiRequestParams<{ collectionId: string; itemId: string }>,
     ): Promise<Item> => {
       const { routeParams } = params;
       const { collectionId, itemId } = routeParams;
 
       return await callApi<Item>(
         "DELETE",
-        `/api/collections/${collectionId}/items/${itemId}`
+        `/api/collections/${collectionId}/items/${itemId}`,
       );
     },
-    [callApi]
+    [callApi],
   );
 
   return {

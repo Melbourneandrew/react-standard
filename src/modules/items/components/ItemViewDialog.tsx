@@ -35,26 +35,26 @@ export function ItemViewDialog({ itemId, onClose }: ItemViewDialogProps) {
             {isLoadingItem
               ? "Loading..."
               : itemError
-              ? "Error"
-              : item?.name || "Item Details"}
+                ? "Error"
+                : item?.name || "Item Details"}
           </DialogTitle>
         </DialogHeader>
 
         {isLoadingItem && (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
           </div>
         )}
 
         {itemError && (
-          <div className="text-center text-sm text-destructive py-8">
+          <div className="text-destructive py-8 text-center text-sm">
             {itemError.message}
           </div>
         )}
 
         {item && (
           <>
-            <div className="p-6 pt-0 space-y-4">
+            <div className="space-y-4 p-6 pt-0">
               {item.description && (
                 <div>
                   <Label>Description</Label>

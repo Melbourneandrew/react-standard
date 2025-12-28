@@ -44,7 +44,7 @@ export function useItemUpdateMutation(): UseItemUpdateMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { updateItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {
@@ -67,7 +67,7 @@ export function useItemUpdateMutation(): UseItemUpdateMutationReturn {
       items: oldData.items.map((item) =>
         item.id === itemId
           ? { ...item, ...data, updated_at: new Date().toISOString() }
-          : item
+          : item,
       ),
     }),
     onError: (error) => defaultQueryErrorHandler(error),

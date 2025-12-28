@@ -33,7 +33,7 @@ interface ItemContextType {
   setQuery: (query: string) => void;
   setSorting: (
     sortBy: "name" | "created_at" | "updated_at",
-    sortOrder: "asc" | "desc"
+    sortOrder: "asc" | "desc",
   ) => void;
   resetFilters: () => void;
   goToPage: (page: number) => void;
