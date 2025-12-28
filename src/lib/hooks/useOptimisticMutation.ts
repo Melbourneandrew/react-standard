@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, UseMutationOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  UseMutationOptions,
+} from "@tanstack/react-query";
 
 /**
  * Optimistic Mutation Hook - Generic wrapper for mutations with optimistic updates
@@ -27,11 +31,11 @@ import { useMutation, useQueryClient, UseMutationOptions } from "@tanstack/react
 interface UseOptimisticMutationOptions<
   TData = unknown,
   TVariables = unknown,
-  TCacheData = unknown
+  TCacheData = unknown,
 > extends Omit<
-    UseMutationOptions<TData, Error, TVariables>,
-    "onMutate" | "onError" | "onSettled"
-  > {
+  UseMutationOptions<TData, Error, TVariables>,
+  "onMutate" | "onError" | "onSettled"
+> {
   /**
    * Query key to invalidate and optimistically update
    */
@@ -59,7 +63,7 @@ interface UseOptimisticMutationOptions<
 export function useOptimisticMutation<
   TData = unknown,
   TVariables = unknown,
-  TCacheData = unknown
+  TCacheData = unknown,
 >({
   mutationFn,
   queryKey,
@@ -72,7 +76,10 @@ export function useOptimisticMutation<
 
   // Define context type for type safety
   type MutationContext = {
-    previousData: [queryKey: readonly unknown[], data: TCacheData | undefined][];
+    previousData: [
+      queryKey: readonly unknown[],
+      data: TCacheData | undefined,
+    ][];
   };
 
   return useMutation<TData, Error, TVariables, MutationContext>({
@@ -121,4 +128,3 @@ export function useOptimisticMutation<
     },
   });
 }
-

@@ -44,7 +44,7 @@ export function useItemDeleteMutation(): UseItemDeleteMutationReturn {
   const { currentCollectionId } = useCollectionContext();
   const { deleteItemApi } = useItemsApi();
   const { defaultQueryErrorHandler } = useDefaultQueryErrorHandler(
-    "Item Mutation Error"
+    "Item Mutation Error",
   );
 
   const {

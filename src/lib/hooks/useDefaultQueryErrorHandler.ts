@@ -24,7 +24,7 @@ export function useDefaultQueryErrorHandler(title: string = "Query Error") {
         message: apiError.detail || error.message || "An error occurred",
       });
     },
-    [showErrorToast, title]
+    [showErrorToast, title],
   );
 
   return { defaultQueryErrorHandler };

@@ -69,7 +69,7 @@ export function useItemSearch() {
       // Navigate with updated params
       router.push(`${pathname}?${params.toString()}`);
     },
-    [searchParams, router, pathname]
+    [searchParams, router, pathname],
   );
 
   // Action: Update search query
@@ -77,7 +77,7 @@ export function useItemSearch() {
     (query: string) => {
       updateUrlParams({ query, page: 1 }); // Reset to page 1 on new search
     },
-    [updateUrlParams]
+    [updateUrlParams],
   );
 
   // Early return if no collection ID - prevents errors when not in a collection route
@@ -111,7 +111,7 @@ export function useItemSearch() {
     (page: number) => {
       updateUrlParams({ page });
     },
-    [updateUrlParams]
+    [updateUrlParams],
   );
 
   // Action: Next page
@@ -133,18 +133,18 @@ export function useItemSearch() {
     (pageSize: number) => {
       updateUrlParams({ page_size: pageSize, page: 1 }); // Reset to page 1 on page size change
     },
-    [updateUrlParams]
+    [updateUrlParams],
   );
 
   // Action: Change sort
   const setSorting = useCallback(
     (
       sortBy: "name" | "created_at" | "updated_at",
-      sortOrder: "asc" | "desc"
+      sortOrder: "asc" | "desc",
     ) => {
       updateUrlParams({ sort_by: sortBy, sort_order: sortOrder });
     },
-    [updateUrlParams]
+    [updateUrlParams],
   );
 
   // Action: Reset all filters

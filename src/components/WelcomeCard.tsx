@@ -12,8 +12,8 @@ import { CollectionsSelectionDropdown } from "@/modules/collections/components/C
 
 export function WelcomeCard() {
   return (
-    <div className="pt-8 px-4">
-      <Card className="w-full max-w-md mx-auto">
+    <div className="px-4 pt-8">
+      <Card className="mx-auto w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome</CardTitle>
           <CardDescription>
@@ -25,7 +25,7 @@ export function WelcomeCard() {
             <Label>Select Collection</Label>
             <CollectionsSelectionDropdown />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Use the collection selector above to get started.
           </p>
         </CardContent>

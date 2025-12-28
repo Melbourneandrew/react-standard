@@ -62,7 +62,7 @@ export default function ItemsList() {
         <div className="mb-4">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search..."
                 value={searchInput}
@@ -83,19 +83,19 @@ export default function ItemsList() {
         <div className="space-y-3">
           {isItemSearchLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
             </div>
           ) : itemSearchError ? (
-            <div className="text-center py-12 text-sm text-destructive">
+            <div className="text-destructive py-12 text-center text-sm">
               {itemSearchError.message}
             </div>
           ) : isEmpty ? (
-            <div className="text-center py-12 text-sm text-muted-foreground">
+            <div className="text-muted-foreground py-12 text-center text-sm">
               No items found
             </div>
           ) : (
             <>
-              <div className="text-sm text-muted-foreground mb-4">
+              <div className="text-muted-foreground mb-4 text-sm">
                 {totalCount} {totalCount === 1 ? "item" : "items"}
               </div>
 
@@ -103,15 +103,15 @@ export default function ItemsList() {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                    className="hover:bg-accent/50 rounded-lg border p-4 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm mb-1">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="mb-1 text-sm font-medium">
                           {item.name}
                         </h3>
                         {item.description && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             {item.description}
                           </p>
                         )}
@@ -157,7 +157,7 @@ export default function ItemsList() {
                   >
                     Previous
                   </Button>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     Page {currentPage} of {totalPages}
                   </div>
                   <Button
@@ -184,10 +184,7 @@ export default function ItemsList() {
         onClose={() => setEditItem(null)}
       />
 
-      <ItemDeleteDialog
-        item={deleteItem}
-        onClose={() => setDeleteItem(null)}
-      />
+      <ItemDeleteDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
 
       <ItemCreationDialog
         open={isCreateDialogOpen}

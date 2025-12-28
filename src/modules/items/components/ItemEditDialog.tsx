@@ -31,10 +31,7 @@ interface ItemEditDialogProps {
  * Optimistic Updates: Changes appear in UI immediately. The mutation handles
  * cache invalidation automatically - no manual refetch callbacks needed.
  */
-export function ItemEditDialog({
-  item,
-  onClose,
-}: ItemEditDialogProps) {
+export function ItemEditDialog({ item, onClose }: ItemEditDialogProps) {
   const { updateItemAsync, isUpdatingItem } = useItemUpdateMutation();
   // Initialize from props - parent's key prop will reset component when item changes
   const [name, setName] = useState(item?.name || "");
@@ -76,7 +73,7 @@ export function ItemEditDialog({
             <DialogHeader>
               <DialogTitle>Edit Item</DialogTitle>
             </DialogHeader>
-            <div className="p-6 pt-0 space-y-4">
+            <div className="space-y-4 p-6 pt-0">
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Name</Label>
                 <Input
@@ -120,7 +117,7 @@ export function ItemEditDialog({
               >
                 {isUpdatingItem ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (

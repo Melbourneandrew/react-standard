@@ -10,9 +10,9 @@ export default function CollectionItemsPage() {
 
   if (!currentCollectionId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <Label className="text-xl text-muted-foreground">
+          <Label className="text-muted-foreground text-xl">
             Collection not found
           </Label>
         </div>
