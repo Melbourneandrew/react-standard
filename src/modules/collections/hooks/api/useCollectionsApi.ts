@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useApi } from "@/lib/hooks/useApi";
 import type { ApiRequestParams, NoRouteParams } from "@/lib/types/api-types";
 import type {
@@ -22,43 +21,39 @@ export function useCollectionsApi() {
    * Search collections with pagination and filters
    * @param params - Request parameters with query params (search filters)
    */
-  const searchCollectionsApi = useCallback(
-    async (
-      params: ApiRequestParams<NoRouteParams, CollectionSearchParams> = {
-        queryParams: {},
-      },
-    ): Promise<CollectionSearchResponse> => {
-      const { queryParams = {} } = params;
-      const searchParams = new URLSearchParams();
-
-      Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-
-      const queryString = searchParams.toString();
-      return await callApi<CollectionSearchResponse>(
-        "GET",
-        `/api/collections${queryString ? `?${queryString}` : ""}`,
-      );
+  const searchCollectionsApi = async (
+    params: ApiRequestParams<NoRouteParams, CollectionSearchParams> = {
+      queryParams: {},
     },
-    [callApi],
-  );
+  ): Promise<CollectionSearchResponse> => {
+    const { queryParams = {} } = params;
+    const searchParams = new URLSearchParams();
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const queryString = searchParams.toString();
+    return await callApi<CollectionSearchResponse>(
+      "GET",
+      `/api/collections${queryString ? `?${queryString}` : ""}`,
+    );
+  };
 
   /**
    * Fetch a single collection by ID
    * @param params - Request parameters with route params (id)
    */
-  const fetchCollectionApi = useCallback(
-    async (params: ApiRequestParams<{ id: string }>): Promise<Collection> => {
-      const { routeParams } = params;
-      const { id } = routeParams;
+  const fetchCollectionApi = async (
+    params: ApiRequestParams<{ id: string }>,
+  ): Promise<Collection> => {
+    const { routeParams } = params;
+    const { id } = routeParams;
 
-      return await callApi<Collection>("GET", `/api/collections/${id}`);
-    },
-    [callApi],
-  );
+    return await callApi<Collection>("GET", `/api/collections/${id}`);
+  };
 
   return {
     searchCollectionsApi,

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useMemo } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCollectionsQuery } from "../hooks/query/useCollectionsQuery";
 import type { Collection } from "../types/collection";
@@ -42,25 +42,17 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
   // Extract collection ID from route params
   // Route structure: /collections/[id]/...
-  const currentCollectionId = useMemo(() => {
-    if (params?.id && typeof params.id === "string") {
-      return params.id;
-    }
-    return undefined;
-  }, [params?.id]);
+  const currentCollectionId =
+    params?.id && typeof params.id === "string" ? params.id : undefined;
 
   // Fetch collections using the existing query hook
   const { data: collectionsData, isLoadingCollections } = useCollectionsQuery();
 
   // Extract the current collection from the collections query results
-  const currentCollection = useMemo<Collection | undefined>(() => {
-    if (!currentCollectionId || !collectionsData) {
-      return undefined;
-    }
-    return collectionsData.collections.find(
-      (c) => c.id === currentCollectionId,
-    );
-  }, [currentCollectionId, collectionsData]);
+  const currentCollection: Collection | undefined =
+    currentCollectionId && collectionsData
+      ? collectionsData.collections.find((c) => c.id === currentCollectionId)
+      : undefined;
 
   const isLoadingCollection = isLoadingCollections;
 

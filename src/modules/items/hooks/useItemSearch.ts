@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useItemsQuery } from "@/modules/items/hooks/query/useItemsQuery";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
@@ -53,32 +52,63 @@ export function useItemSearch() {
   const isEmpty = totalCount === 0;
 
   // Helper to update URL params
-  const updateUrlParams = useCallback(
-    (updates: Partial<ItemSearchParams>) => {
-      const params = new URLSearchParams(searchParams.toString());
+  const updateUrlParams = (updates: Partial<ItemSearchParams>) => {
+    const params = new URLSearchParams(searchParams.toString());
 
-      // Apply updates
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          params.set(key, String(value));
-        } else {
-          params.delete(key);
-        }
-      });
+    // Apply updates
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.set(key, String(value));
+      } else {
+        params.delete(key);
+      }
+    });
 
-      // Navigate with updated params
-      router.push(`${pathname}?${params.toString()}`);
-    },
-    [searchParams, router, pathname],
-  );
+    // Navigate with updated params
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   // Action: Update search query
-  const setQuery = useCallback(
-    (query: string) => {
-      updateUrlParams({ query, page: 1 }); // Reset to page 1 on new search
-    },
-    [updateUrlParams],
-  );
+  const setQuery = (query: string) => {
+    updateUrlParams({ query, page: 1 }); // Reset to page 1 on new search
+  };
+
+  // Action: Change page
+  const goToPage = (page: number) => {
+    updateUrlParams({ page });
+  };
+
+  // Action: Next page
+  const nextPage = () => {
+    if (hasNextPage) {
+      updateUrlParams({ page: currentPage + 1 });
+    }
+  };
+
+  // Action: Previous page
+  const previousPage = () => {
+    if (hasPreviousPage) {
+      updateUrlParams({ page: Math.max(1, currentPage - 1) });
+    }
+  };
+
+  // Action: Change page size
+  const setPageSize = (newPageSize: number) => {
+    updateUrlParams({ page_size: newPageSize, page: 1 }); // Reset to page 1 on page size change
+  };
+
+  // Action: Change sort
+  const setSorting = (
+    sortBy: "name" | "created_at" | "updated_at",
+    sortOrder: "asc" | "desc",
+  ) => {
+    updateUrlParams({ sort_by: sortBy, sort_order: sortOrder });
+  };
+
+  // Action: Reset all filters
+  const resetFilters = () => {
+    router.push(pathname); // Clear all search params
+  };
 
   // Early return if no collection ID - prevents errors when not in a collection route
   if (!currentCollectionId) {
@@ -96,61 +126,15 @@ export function useItemSearch() {
       isItemSearchFetching: false,
       itemSearchError: null,
       setQuery,
-      setSorting: () => {},
-      resetFilters: () => {},
-      goToPage: () => {},
-      nextPage: () => {},
-      previousPage: () => {},
-      setPageSize: () => {},
+      setSorting,
+      resetFilters,
+      goToPage,
+      nextPage,
+      previousPage,
+      setPageSize,
       refetchItemSearch: () => {},
     };
   }
-
-  // Action: Change page
-  const goToPage = useCallback(
-    (page: number) => {
-      updateUrlParams({ page });
-    },
-    [updateUrlParams],
-  );
-
-  // Action: Next page
-  const nextPage = useCallback(() => {
-    if (hasNextPage) {
-      updateUrlParams({ page: currentPage + 1 });
-    }
-  }, [hasNextPage, currentPage, updateUrlParams]);
-
-  // Action: Previous page
-  const previousPage = useCallback(() => {
-    if (hasPreviousPage) {
-      updateUrlParams({ page: Math.max(1, currentPage - 1) });
-    }
-  }, [hasPreviousPage, currentPage, updateUrlParams]);
-
-  // Action: Change page size
-  const setPageSize = useCallback(
-    (pageSize: number) => {
-      updateUrlParams({ page_size: pageSize, page: 1 }); // Reset to page 1 on page size change
-    },
-    [updateUrlParams],
-  );
-
-  // Action: Change sort
-  const setSorting = useCallback(
-    (
-      sortBy: "name" | "created_at" | "updated_at",
-      sortOrder: "asc" | "desc",
-    ) => {
-      updateUrlParams({ sort_by: sortBy, sort_order: sortOrder });
-    },
-    [updateUrlParams],
-  );
-
-  // Action: Reset all filters
-  const resetFilters = useCallback(() => {
-    router.push(pathname); // Clear all search params
-  }, [router, pathname]);
 
   return {
     // Data

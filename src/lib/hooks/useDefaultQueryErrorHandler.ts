@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useToast } from "./useToast";
 import { ApiError } from "./useApi";
 
@@ -13,19 +12,16 @@ import { ApiError } from "./useApi";
 export function useDefaultQueryErrorHandler(title: string = "Query Error") {
   const { showErrorToast } = useToast();
 
-  const defaultQueryErrorHandler = useCallback(
-    (error: Error | null) => {
-      if (!error) return;
+  const defaultQueryErrorHandler = (error: Error | null) => {
+    if (!error) return;
 
-      const apiError = error as ApiError;
+    const apiError = error as ApiError;
 
-      showErrorToast({
-        title: title,
-        message: apiError.detail || error.message || "An error occurred",
-      });
-    },
-    [showErrorToast, title],
-  );
+    showErrorToast({
+      title: title,
+      message: apiError.detail || error.message || "An error occurred",
+    });
+  };
 
   return { defaultQueryErrorHandler };
 }
