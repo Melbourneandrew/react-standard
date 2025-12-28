@@ -29,7 +29,7 @@ interface ItemContextType {
   searchParams: ItemSearchParams;
   isItemSearchLoading: boolean;
   isItemSearchFetching: boolean;
-  itemSearchError: any;
+  itemSearchError: Error | null;
   setQuery: (query: string) => void;
   setSorting: (
     sortBy: "name" | "created_at" | "updated_at",

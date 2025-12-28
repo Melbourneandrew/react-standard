@@ -28,8 +28,12 @@ export function useItemSearch() {
     query: searchParams.get("query") || undefined,
     page: parseInt(searchParams.get("page") || "1", 10),
     page_size: parseInt(searchParams.get("page_size") || "5", 10),
-    sort_by: (searchParams.get("sort_by") as any) || "created_at",
-    sort_order: (searchParams.get("sort_order") as any) || "desc",
+    sort_by:
+      (searchParams.get("sort_by") as ItemSearchParams["sort_by"]) ||
+      "created_at",
+    sort_order:
+      (searchParams.get("sort_order") as ItemSearchParams["sort_order"]) ||
+      "desc",
   };
 
   // Query with URL-based search params (collection ID comes from context)

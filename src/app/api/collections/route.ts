@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_COLLECTIONS } from "@/app/api/mock-data";
+import { MOCK_COLLECTIONS } from "@/lib/mock-data";
 import type {
   CollectionSearchParams,
   CollectionSearchResponse,

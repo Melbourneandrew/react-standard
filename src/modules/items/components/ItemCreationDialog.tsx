@@ -36,8 +36,11 @@ export function ItemCreationDialog({ open, onClose }: ItemCreationDialogProps) {
   const [description, setDescription] = useState("");
 
   // Reset form when dialog closes
+  // Note: setState in effect is intentional here to reset form state
+  // when the dialog closes. This is a common pattern for controlled dialogs.
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: resetting form on close
       setName("");
       setDescription("");
     }

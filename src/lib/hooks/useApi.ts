@@ -37,10 +37,10 @@ export class ApiError extends Error {
 }
 
 export function useApi() {
-  const callApi = async <T = any>(
+  const callApi = async <T = unknown>(
     method: HttpMethod,
     url: string,
-    data?: any,
+    data?: unknown,
   ): Promise<T> => {
     try {
       const options: RequestInit = {
@@ -62,7 +62,7 @@ export function useApi() {
         try {
           const errorBody: FastApiErrorResponse = await response.json();
           detail = errorBody.detail;
-        } catch (parseError) {
+        } catch {
           // If response body isn't JSON or doesn't have detail field
           detail = response.statusText || "Unknown error";
         }

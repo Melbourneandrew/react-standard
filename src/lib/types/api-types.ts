@@ -22,12 +22,13 @@ export type NoBodyParams = Record<string, never>;
  * Fields are required when their type parameter is not Record<string, never>,
  * and optional when it is Record<string, never>.
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Required for generic type constraints to work with interface types */
 export type ApiRequestParams<
   TRouteParams extends Record<string, any> = Record<string, never>,
   TQueryParams extends Record<string, any> = Record<string, never>,
   TBodyParams extends Record<string, any> = Record<string, never>,
 > =
-  // If routeParams is not empty, make it required; otherwise optional
+  /* eslint-enable @typescript-eslint/no-explicit-any */ // If routeParams is not empty, make it required; otherwise optional
   (TRouteParams extends Record<string, never>
     ? { routeParams?: TRouteParams }
     : {

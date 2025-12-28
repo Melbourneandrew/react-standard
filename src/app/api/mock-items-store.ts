@@ -5,11 +5,12 @@
  * In a real application, this would be replaced with a database.
  */
 
-import { MOCK_ITEMS } from "./mock-data";
+import { MOCK_ITEMS } from "@/lib/mock-data";
 import type { Item } from "@/modules/items/types/item";
 
 // Create a mutable copy that can be shared across route handlers
-let mockItems: Item[] = [...MOCK_ITEMS];
+// Note: Using let because the array contents are mutated, but we use const for the reference
+const mockItems: Item[] = [...MOCK_ITEMS];
 
 /**
  * Get all mock items
