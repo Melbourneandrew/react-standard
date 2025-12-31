@@ -8,8 +8,9 @@
 import { MOCK_ITEMS } from "@/app/api/mock-data";
 import type { Item } from "@/modules/items/types/item";
 
-// Create a mutable copy that can be shared across route handlers
-// Note: Using let because the array contents are mutated, but we use const for the reference
+// Create a mutable copy that can be shared across route handlers.
+// Using const because the array is only mutated (push, splice, index assignment),
+// never reassigned. const prevents reassignment, not mutation.
 const mockItems: Item[] = [...MOCK_ITEMS];
 
 /**
