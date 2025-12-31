@@ -5,7 +5,7 @@
  * In a real application, this would be replaced with a database.
  */
 
-import { MOCK_ITEMS } from "@/lib/mock-data";
+import { MOCK_ITEMS } from "@/app/api/mock-data";
 import type { Item } from "@/modules/items/types/item";
 
 // Create a mutable copy that can be shared across route handlers
