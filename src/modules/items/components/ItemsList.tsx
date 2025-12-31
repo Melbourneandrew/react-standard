@@ -40,7 +40,10 @@ export default function ItemsList() {
   const [searchInput, setSearchInput] = useState(searchParams.query || "");
 
   // Sync local input with URL query param (when navigating back/forward)
+  // Note: setState in effect is intentional here to synchronize local state
+  // with URL state when the user navigates with browser back/forward buttons.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: syncing with URL state
     setSearchInput(searchParams.query || "");
   }, [searchParams.query]);
 

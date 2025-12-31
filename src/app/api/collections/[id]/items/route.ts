@@ -38,12 +38,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // Sort items
     filteredItems.sort((a, b) => {
-      let aValue: any = a[sortBy as keyof typeof a];
-      let bValue: any = b[sortBy as keyof typeof b];
+      let aValue: string | number = a[sortBy as keyof typeof a] as string;
+      let bValue: string | number = b[sortBy as keyof typeof b] as string;
 
       if (sortBy === "created_at" || sortBy === "updated_at") {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
+        aValue = new Date(aValue as string).getTime();
+        bValue = new Date(bValue as string).getTime();
       }
 
       if (sortOrder === "asc") {
