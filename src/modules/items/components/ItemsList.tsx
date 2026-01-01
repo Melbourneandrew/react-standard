@@ -11,7 +11,7 @@ import { ItemDeleteDialog } from "@/modules/items/components/ItemDeleteDialog";
 import { ItemCreationDialog } from "@/modules/items/components/ItemCreationDialog";
 import { Search, Plus, Loader2, Eye, Pencil, Trash2 } from "lucide-react";
 
-export default function ItemsList() {
+export function ItemsList() {
   // Context: Shared state (search, filters, pagination)
   // Note: refetchItemSearch no longer needed - mutations handle cache invalidation
   const {
