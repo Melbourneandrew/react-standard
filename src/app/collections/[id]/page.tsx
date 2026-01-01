@@ -1,7 +1,7 @@
 "use client";
 
 import { ItemProvider } from "@/modules/items/contexts/ItemContext";
-import ItemsList from "@/modules/items/components/ItemsList";
+import { ItemsList } from "@/modules/items/components/ItemsList";
 import { Label } from "@/components/ui/label";
 import { useCollectionContext } from "@/modules/collections/contexts/CollectionContext";
 
